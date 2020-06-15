@@ -1,0 +1,43 @@
+
+#pragma once
+
+#include<vector>
+#include"Types.h"
+{% if  MSG_INHERIT=="" %}#include"MessageBase.h"{% endif %}
+{% if MSG_INHERIT!="" %}#include"{{MSG_INHERIT}}.h" {% endif %}
+
+namespace {{NAMESPACE}}
+{
+  //{{MSG_NAME}} {{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
+  class {{MSG_NAME}} : public {% if MSG_INHERIT!="" %} {{MSG_INHERIT}} 
+  {% endif %} {% if  MSG_INHERIT=="" %} mp::MessageBase 
+  {% endif %}
+  {
+   public:
+    {{MSG_NAME}}(){}
+	~{{MSG_NAME}}(){}
+  	virtual uint32_t GetMsgType() override { return {{MSG_PKT_NO}};} //{{MSG_DESCRIPTION}}
+
+    virtual void FillDefaultValue()  override;
+    
+	virtual mp::ErrorCode Decode(mp::Decoder& decoder)  override;
+    
+	virtual mp::ErrorCode Encode(mp::Encoder& encoder) override;
+    
+	virtual void Dump(std::ostream& ostream) override;
+	
+	{% if exists("FIELDS") %}
+## for FIELD in FIELDS
+    {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
+    {{ FIELD.F_PRIMITIVE_TYPE }}  {{ FIELD.F_NAME }};//{{ FIELD.F_DESCRIPTION }}
+	{% endif %}
+	{# 循环信息注释 {{ loop.index1 }}，{{ loop.index }}, {{ loop.is_first }},{{ loop.is_last }}    #}
+	{% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
+    std::vector<{{ FIELD.F_PRIMITIVE_TYPE }}>  {{ FIELD.F_NAME }};//{{ FIELD.F_DESCRIPTION }}
+	{% endif %}
+## endfor
+	{% endif %}
+
+  };//end of {{MSG_NAME}}
+
+}//end of {{NAMESPACE}}

@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="GenMsg">
+      <UniqueIdentifier>{87860cce-2374-4341-8db7-ca5603dae1d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="template_files">
+      <UniqueIdentifier>{1877ea66-f94c-40d1-b1c0-b85edd9ad17f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="FileUtil.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageParse.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GenMsg\BaseMessage.cpp">
+      <Filter>GenMsg</Filter>
+    </ClCompile>
+    <ClCompile Include="GenMsg\Constants.cpp">
+      <Filter>GenMsg</Filter>
+    </ClCompile>
+    <ClCompile Include="GenMsg\DeriveMessage.cpp">
+      <Filter>GenMsg</Filter>
+    </ClCompile>
+    <ClCompile Include="GenMsg\TestOrder.cpp">
+      <Filter>GenMsg</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="mp\message_definition.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="template_files\TEMPLATE_CONSTANTS_CPP.txt">
+      <Filter>template_files</Filter>
+    </Text>
+    <Text Include="template_files\TEMPLATE_CONSTANTS_H.txt">
+      <Filter>template_files</Filter>
+    </Text>
+    <Text Include="template_files\TEMPLATE_MESSAGE_CPP.txt">
+      <Filter>template_files</Filter>
+    </Text>
+    <Text Include="template_files\TEMPLATE_MESSAGE_H.txt">
+      <Filter>template_files</Filter>
+    </Text>
+    <Text Include="template_files\TEMPLATE_TYPES_H.txt">
+      <Filter>template_files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="mp\ArrayUtil.h" />
+    <ClInclude Include="GenMsg\BaseMessage.h">
+      <Filter>GenMsg</Filter>
+    </ClInclude>
+    <ClInclude Include="GenMsg\Constants.h">
+      <Filter>GenMsg</Filter>
+    </ClInclude>
+    <ClInclude Include="GenMsg\DeriveMessage.h">
+      <Filter>GenMsg</Filter>
+    </ClInclude>
+    <ClInclude Include="GenMsg\TestOrder.h">
+      <Filter>GenMsg</Filter>
+    </ClInclude>
+    <ClInclude Include="GenMsg\Types.h">
+      <Filter>GenMsg</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
