@@ -2,8 +2,8 @@
 #include<stdint.h>
 namespace mp
 {
-	enum  class ErrorCode:int32_t
+	enum  class ErrorCode :int32_t
 	{
-		kSuccess=0  //成功
+		kSuccess = 0  //成功
 	};
 }

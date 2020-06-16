@@ -4,7 +4,14 @@
 #include<vector>
 #include"Types.h"
 {% if  MSG_INHERIT=="" %}#include"MessageBase.h"{% endif %}
-{% if MSG_INHERIT!="" %}#include"{{MSG_INHERIT}}.h" {% endif %}
+{% if  MSG_INHERIT!="" %}#include"{{MSG_INHERIT}}.h" {% endif %}
+
+## for FIELD in FIELDS
+    {#{ FIELD }#}
+	{% if FIELD.F_FILED_TYPE==1 and FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="" %}
+#include"{{ FIELD.F_PRIMITIVE_TYPE }}.h"
+	{% endif %}
+## endfor
 
 namespace {{NAMESPACE}}
 {
@@ -20,9 +27,9 @@ namespace {{NAMESPACE}}
 
     virtual void FillDefaultValue()  override;
     
-	virtual mp::ErrorCode Decode(mp::Decoder& decoder)  override;
+	virtual mp::ErrorCode Decode(mp::MessageDecoder& decoder)  override;
     
-	virtual mp::ErrorCode Encode(mp::Encoder& encoder) override;
+	virtual mp::ErrorCode Encode(mp::MessageEncoder& encoder) override;
     
 	virtual void Dump(std::ostream& ostream) override;
 	

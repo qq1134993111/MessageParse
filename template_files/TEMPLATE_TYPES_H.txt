@@ -11,18 +11,18 @@ namespace {{NAMESPACE}}
     {% if TYPE.T_PRIMITIVE_TYPE in ["int8","uint8","int16","uint16","int32","uint32","int64","uint64"] %}
 	     using {{TYPE.T_NAME}}={{TYPE.T_PRIMITIVE_TYPE}}_t;//{{TYPE.T_DESCRIPTION}}
 	{% endif %}
-	{% if TYPE.T_PRIMITIVE_TYPE == "char" %}
+	{#{% if TYPE.T_PRIMITIVE_TYPE == "char" %}
 	     using {{TYPE.T_NAME}}=char;//{{TYPE.T_DESCRIPTION}}
-	{% endif %}
+	{% endif %}#}
 	{% if TYPE.T_PRIMITIVE_TYPE == "uchar" %}
 	     using {{TYPE.T_NAME}}=unsigned char;//{{TYPE.T_DESCRIPTION}}
 	{% endif %}
 	{% if TYPE.T_PRIMITIVE_TYPE == "string" %}
 	     using {{TYPE.T_NAME}}=std::string;//{{TYPE.T_DESCRIPTION}}
 	{% endif %}
-	{% if TYPE.T_PRIMITIVE_TYPE == "bool" %}
+	{#{% if TYPE.T_PRIMITIVE_TYPE == "bool" %}
 	     using {{TYPE.T_NAME}}=bool;//{{TYPE.T_DESCRIPTION}}
-	{% endif %}
+	{% endif %}#}
 	{% if TYPE.T_PRIMITIVE_TYPE == "FixArray" %}
 	     using {{TYPE.T_NAME}}=std::array<char,{{TYPE.T_LENGTH}}>;//{{TYPE.T_DESCRIPTION}}
 	{% endif %}

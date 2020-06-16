@@ -259,18 +259,18 @@ bool MessageParser::Write(const std::string& template_path,const std::string& wr
 			inja::Template temp_types_h = env.parse_template("TEMPLATE_TYPES_H.txt");
 			inja::json json_types;
 			json_types["NAMESPACE"] = "hao";
-			//json_types["TYPES"].push_back({ {"T_NAME","char"},{"T_PRIMITIVE_TYPE","char"},{"T_LENGTH",0},{"T_DESCRIPTION","char"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","uchar"},{"T_PRIMITIVE_TYPE","uchar"},{"T_LENGTH",0},{"T_DESCRIPTION","unsigned char"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","bool"},{"T_PRIMITIVE_TYPE","bool"},{"T_LENGTH",0},{"T_DESCRIPTION","bool"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","int8"},{"T_PRIMITIVE_TYPE","int8"},{"T_LENGTH",0},{"T_DESCRIPTION","int8_t"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","uint8"},{"T_PRIMITIVE_TYPE","uint8"},{"T_LENGTH",0},{"T_DESCRIPTION","uint8_t"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","int16"},{"T_PRIMITIVE_TYPE","int16"},{"T_LENGTH",0},{"T_DESCRIPTION","int8_t"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","uint16"},{"T_PRIMITIVE_TYPE","uint16"},{"T_LENGTH",0},{"T_DESCRIPTION","uint16_t"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","int32"},{"T_PRIMITIVE_TYPE","int32"},{"T_LENGTH",0},{"T_DESCRIPTION","int32_t"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","uint32"},{"T_PRIMITIVE_TYPE","uint32"},{"T_LENGTH",0},{"T_DESCRIPTION","uint32_t"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","int64"},{"T_PRIMITIVE_TYPE","int64"},{"T_LENGTH",0},{"T_DESCRIPTION","int64_t"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","uint64"},{"T_PRIMITIVE_TYPE","uint64"},{"T_LENGTH",0},{"T_DESCRIPTION","uint64_t"} });
-			//json_types["TYPES"].push_back({ {"T_NAME","string"},{"T_PRIMITIVE_TYPE","string"},{"T_LENGTH",std::numeric_limits<uint32_t>::max()},{"T_DESCRIPTION","std::string"} });
+			json_types["TYPES"].push_back({ {"T_NAME","char"},{"T_PRIMITIVE_TYPE","char"},{"T_LENGTH",0},{"T_DESCRIPTION","char"} });
+			json_types["TYPES"].push_back({ {"T_NAME","uchar"},{"T_PRIMITIVE_TYPE","uchar"},{"T_LENGTH",0},{"T_DESCRIPTION","unsigned char"} });
+			json_types["TYPES"].push_back({ {"T_NAME","bool"},{"T_PRIMITIVE_TYPE","bool"},{"T_LENGTH",0},{"T_DESCRIPTION","bool"} });
+			json_types["TYPES"].push_back({ {"T_NAME","int8"},{"T_PRIMITIVE_TYPE","int8"},{"T_LENGTH",0},{"T_DESCRIPTION","int8_t"} });
+			json_types["TYPES"].push_back({ {"T_NAME","uint8"},{"T_PRIMITIVE_TYPE","uint8"},{"T_LENGTH",0},{"T_DESCRIPTION","uint8_t"} });
+			json_types["TYPES"].push_back({ {"T_NAME","int16"},{"T_PRIMITIVE_TYPE","int16"},{"T_LENGTH",0},{"T_DESCRIPTION","int8_t"} });
+			json_types["TYPES"].push_back({ {"T_NAME","uint16"},{"T_PRIMITIVE_TYPE","uint16"},{"T_LENGTH",0},{"T_DESCRIPTION","uint16_t"} });
+			json_types["TYPES"].push_back({ {"T_NAME","int32"},{"T_PRIMITIVE_TYPE","int32"},{"T_LENGTH",0},{"T_DESCRIPTION","int32_t"} });
+			json_types["TYPES"].push_back({ {"T_NAME","uint32"},{"T_PRIMITIVE_TYPE","uint32"},{"T_LENGTH",0},{"T_DESCRIPTION","uint32_t"} });
+			json_types["TYPES"].push_back({ {"T_NAME","int64"},{"T_PRIMITIVE_TYPE","int64"},{"T_LENGTH",0},{"T_DESCRIPTION","int64_t"} });
+			json_types["TYPES"].push_back({ {"T_NAME","uint64"},{"T_PRIMITIVE_TYPE","uint64"},{"T_LENGTH",0},{"T_DESCRIPTION","uint64_t"} });
+			json_types["TYPES"].push_back({ {"T_NAME","string"},{"T_PRIMITIVE_TYPE","string"},{"T_LENGTH",std::numeric_limits<uint32_t>::max()},{"T_DESCRIPTION","std::string"} });
 			for (auto& [key, value] : type_info_map_)
 			{
 				static std::unordered_set<std::string> s_set{ "bool","char","uchar","int8","uint8","int16","uint16","int32","uint32","int64","uint64","string" };

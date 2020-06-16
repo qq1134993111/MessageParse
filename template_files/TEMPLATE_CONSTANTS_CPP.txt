@@ -12,13 +12,15 @@ namespace {{NAMESPACE}}
    {
 ## for FIELD in CONSTANT.FIELDS
        {% if loop.is_first %}       
-       return (value==k{{FIELD.F_NAME}}
+       return (
+       value==k{{FIELD.F_NAME}} //{{FIELD.F_DESCRIPTION}}
        {% endif %}
        {% if not loop.is_first and not loop.is_last %}
-       ||value==k{{FIELD.F_NAME}}
+       ||value==k{{FIELD.F_NAME}}  //{{FIELD.F_DESCRIPTION}}
        {% endif %}
        {% if loop.is_last %}
-       ||value==k{{FIELD.F_NAME}});
+       ||value==k{{FIELD.F_NAME}}  //{{FIELD.F_DESCRIPTION}}
+       );
        {% endif %}
 ## endfor
    }

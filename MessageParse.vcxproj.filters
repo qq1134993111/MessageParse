@@ -26,18 +26,6 @@
     <ClCompile Include="MessageParse.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="GenMsg\BaseMessage.cpp">
-      <Filter>GenMsg</Filter>
-    </ClCompile>
-    <ClCompile Include="GenMsg\Constants.cpp">
-      <Filter>GenMsg</Filter>
-    </ClCompile>
-    <ClCompile Include="GenMsg\DeriveMessage.cpp">
-      <Filter>GenMsg</Filter>
-    </ClCompile>
-    <ClCompile Include="GenMsg\TestOrder.cpp">
-      <Filter>GenMsg</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="mp\message_definition.xml" />
@@ -61,20 +49,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mp\ArrayUtil.h" />
-    <ClInclude Include="GenMsg\BaseMessage.h">
-      <Filter>GenMsg</Filter>
-    </ClInclude>
-    <ClInclude Include="GenMsg\Constants.h">
-      <Filter>GenMsg</Filter>
-    </ClInclude>
-    <ClInclude Include="GenMsg\DeriveMessage.h">
-      <Filter>GenMsg</Filter>
-    </ClInclude>
-    <ClInclude Include="GenMsg\TestOrder.h">
-      <Filter>GenMsg</Filter>
-    </ClInclude>
-    <ClInclude Include="GenMsg\Types.h">
-      <Filter>GenMsg</Filter>
-    </ClInclude>
+    <ClInclude Include="mp\ErrorCode.h" />
+    <ClInclude Include="mp\MessageBase.h" />
+    <ClInclude Include="mp\MessageDecoder.h" />
+    <ClInclude Include="mp\MessageEncoder.h" />
   </ItemGroup>
 </Project>

@@ -8,8 +8,8 @@
 namespace mp
 {
 
-	class Decoder;
-	class Encoder;
+	class MessageDecoder;
+	class MessageEncoder;
 
 	class MessageBase
 	{
@@ -28,9 +28,9 @@ namespace mp
 
 		virtual void FillDefaultValue() = 0;
 
-		virtual mp::ErrorCode Decode(mp::Decoder& decoder) = 0;
+		virtual mp::ErrorCode Decode(mp::MessageDecoder& decoder) = 0;
 
-		virtual mp::ErrorCode Encode(mp::Encoder& encoder) = 0;
+		virtual mp::ErrorCode Encode(mp::MessageEncoder& encoder) = 0;
 
 		virtual void Dump(std::ostream& ostream) = 0;
 	};

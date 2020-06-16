@@ -1,6 +1,6 @@
 
-#include"Encoder.h"
-#include"Decoder.h"
+#include"MessageEncoder.h"
+#include"MessageDecoder.h"
 #include"ArrayUtil.h"
 
 #include"{{MSG_NAME}}.h"
@@ -38,7 +38,7 @@ namespace {{NAMESPACE}}
    }
 
    	
-   mp::ErrorCode {{MSG_NAME}}::Decode(mp::Decoder& decoder)
+   mp::ErrorCode {{MSG_NAME}}::Decode(mp::MessageDecoder& decoder)
    {
        mp::ErrorCode ec=mp::ErrorCode::kSuccess;
     {% if exists("FIELDS") %}
@@ -101,7 +101,7 @@ namespace {{NAMESPACE}}
        return ec;
    }
    
-   mp::ErrorCode {{MSG_NAME}}::Encode(mp::Encoder& encoder)
+   mp::ErrorCode {{MSG_NAME}}::Encode(mp::MessageEncoder& encoder)
    {
        mp::ErrorCode ec=mp::ErrorCode::kSuccess;
     {% if exists("FIELDS") %}

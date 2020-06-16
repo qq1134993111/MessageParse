@@ -156,10 +156,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FileUtil.cpp" />
-    <ClCompile Include="GenMsg\BaseMessage.cpp" />
-    <ClCompile Include="GenMsg\Constants.cpp" />
-    <ClCompile Include="GenMsg\DeriveMessage.cpp" />
-    <ClCompile Include="GenMsg\TestOrder.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MessageParse.cpp" />
   </ItemGroup>
@@ -174,12 +170,11 @@
     <Text Include="template_files\TEMPLATE_TYPES_H.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GenMsg\BaseMessage.h" />
-    <ClInclude Include="GenMsg\Constants.h" />
-    <ClInclude Include="GenMsg\DeriveMessage.h" />
-    <ClInclude Include="GenMsg\TestOrder.h" />
-    <ClInclude Include="GenMsg\Types.h" />
     <ClInclude Include="mp\ArrayUtil.h" />
+    <ClInclude Include="mp\MessageDecoder.h" />
+    <ClInclude Include="mp\MessageEncoder.h" />
+    <ClInclude Include="mp\ErrorCode.h" />
+    <ClInclude Include="mp\MessageBase.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

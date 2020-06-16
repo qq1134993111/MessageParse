@@ -2,37 +2,37 @@
 
 <File namespace="hao" version="0.1" Endian="0" description="test">
 <Types>
-	<Type name="Qty_Def" primitive_type="int64" description="×îµÍ³É½»ÊýÁ¿" />
-	<Type name="AccountID_Def" primitive_type="FixArray" length="10" description="ÕË»§id" />
-	<Type name="UserInfo_Def" primitive_type="string"  description="ÓÃ»§ÐÅÏ¢" />
-	<Type name="Currency_Def" primitive_type="FixArray" length="5" description="±ÒÖÖ" />
+	<Type name="Qty_Def" primitive_type="int64" description="æœ€ä½Žæˆäº¤æ•°é‡" />
+	<Type name="AccountID_Def" primitive_type="FixArray" length="10" description="è´¦æˆ·id" />
+	<Type name="UserInfo_Def" primitive_type="string"  description="ç”¨æˆ·ä¿¡æ¯" />
+	<Type name="Currency_Def" primitive_type="FixArray" length="5" description="å¸ç§" />
 </Types>
 <Constants>
-	<Const name="MyConstType" primitive_type="int64" description="³£Á¿">
-		<value name="all"  description="È«²¿">10</value>
+	<Const name="MyConstType" primitive_type="int64" description="å¸¸é‡">
+		<value name="all"  description="å…¨éƒ¨">10</value>
 	</Const>
 
-	<Const name="CurrencyType" primitive_type="Currency_Def" description="³£Á¿">
-		<value name="USD"  description="ÃÀ¹ú">USD</value>
-		<value name="CNY"  description="ÖÐ¹ú">CNY</value>
+	<Const name="CurrencyType" primitive_type="Currency_Def" description="å¸¸é‡">
+		<value name="USD"  description="ç¾Žå›½">USD</value>
+		<value name="CNY"  description="ä¸­å›½">CNY</value>
 	</Const>
 	
 </Constants>
 <Messages>
-	<Message name="TestOrder"  description="»ù´¡Àà">
-	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="½»¸¶ÊýÁ¿" /> 
+	<Message name="TestOrder"  description="åŸºç¡€ç±»">
+	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="äº¤ä»˜æ•°é‡" /> 
 	    <Field name="MyID" primitive_type="AccountID_Def"  description="ID" /> 
 	</Message>
-	<Message name="BaseMessage" pktno="1001" description="»ù´¡Àà">
-	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="½»¸¶ÊýÁ¿" /> 
+	<Message name="BaseMessage" pktno="1001" description="åŸºç¡€ç±»">
+	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="äº¤ä»˜æ•°é‡" /> 
 	   <Field name="MyID" primitive_type="AccountID_Def"  description="ID" />
 	   <Field name="UserInfo" primitive_type="UserInfo_Def"  description="user" />
 	</Message>
-	<Message name="DeriveMessage" pktno="1002" inherit="BaseMessage" description="×ÓÀà">
-	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="½»¸¶ÊýÁ¿" /> 
+	<Message name="DeriveMessage" pktno="1002" inherit="BaseMessage" description="å­ç±»">
+	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="äº¤ä»˜æ•°é‡" /> 
 	   <Field name="MyID" primitive_type="AccountID_Def"  description="ID" /> 
-	    <Sequence name="VOrder" primitive_type="TestOrder" description="ÐòÁÐ" />
-		<Sequence name="VAccountID" primitive_type="AccountID_Def" description="ÐòÁÐ" />
+	    <Sequence name="VOrder" primitive_type="TestOrder" description="åºåˆ—" />
+		<Sequence name="VAccountID" primitive_type="AccountID_Def" description="åºåˆ—" />
 	</Message>	
 </Messages>
 </File>

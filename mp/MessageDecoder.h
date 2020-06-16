@@ -2,16 +2,16 @@
 #include"ErrorCode.h"
 namespace mp
 {
-	class Encoder
+	class MessageDecoder
 	{
 	public:
 		template<typename T>
-		ErrorCode Write(const T& value)
+		ErrorCode Read(T& value)
 		{
 			return ErrorCode::kSuccess;
 		}
 
-		ErrorCode Write(const char* p,size_t size)
+		ErrorCode Read(char* p,size_t size)
 		{
 			return ErrorCode::kSuccess;
 		}
