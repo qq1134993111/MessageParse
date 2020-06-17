@@ -24,13 +24,17 @@ bool MessageParser::LoadXml(const std::string& file_path)
 
 		endian_ = (EndianType)root.get<int32_t>("File.<xmlattr>.Endian");
 
+
+		//类型信息
 		for (BOOST_AUTO(pos, types_tree.begin()); pos != types_tree.end(); ++pos)
 		{
-			//std::cout << pos->first << "," << pos->second.data() << "\n";
 			std::cout << fmt::format("tag:{0},data:{1}\n", pos->first, pos->second.data());
 
 			if (pos->first != "Type")
+			{
+				std::cout << fmt::format("tag {} not Type,ignore.\n");
 				continue;
+			}
 
 			auto name = pos->second.get<std::string>("<xmlattr>.name");
 			auto primitive_type = pos->second.get<std::string>("<xmlattr>.primitive_type");
@@ -43,11 +47,17 @@ bool MessageParser::LoadXml(const std::string& file_path)
 				if (!len)
 				{
 					//std::cout << "primitive_type length error:" << type_info.primitive_type << "\n";
-					std::cout << fmt::format("name {0} primitive_type {1} length not Valid", name, primitive_type);
+					std::cout << fmt::format("type name {0} primitive_type {1} length not valid,must set value.", name, primitive_type);
+					return false;
+				}
+
+				if (len.value() <= 0)
+				{
+					std::cout << fmt::format("type name {0} primitive_type {1} length is {2},must >= 0", name, primitive_type, len.value());
 					return false;
 				}
 			}
-			else if(TypeRecognition::IsPrimitiveTypeString(primitive_type))
+			else if (TypeRecognition::IsPrimitiveTypeString(primitive_type))
 			{
 				len = std::numeric_limits<uint32_t>::max();
 			}
@@ -55,26 +65,25 @@ bool MessageParser::LoadXml(const std::string& file_path)
 			{
 				len = 0;
 			}
-			
+
 
 			TypeInfoBase type_info(name, primitive_type, len.value_or(0), description);
 			if (!TypeRecognition::IsPrimitiveTypeValid(type_info.GetPrimitiveType()))
 			{
-				//std::cout << "primitive_type error:" << type_info.primitive_type << "\n";
-				std::cout << fmt::format("name {0} primitive_type {1} not Valid", type_info.GetName(), type_info.GetPrimitiveType());
+				std::cout << fmt::format("type name {0} primitive_type {1} not valid.\n", type_info.GetName(), type_info.GetPrimitiveType());
 				return false;
 			}
 
-
 			if (type_info_map_.count(type_info.GetName()))
 			{
-				std::cout << fmt::format("File.Types {} has been defined\n", type_info.GetName());
+				std::cout << fmt::format("File.Types duplicate key ,{} has been defined.\n", type_info.GetName());
 				return false;
 			}
 
 			type_info_map_.insert(std::make_pair(type_info.GetName(), type_info));
 		}
 
+		//消息信息
 		BOOST_FOREACH(boost::property_tree::ptree::value_type & v1, messages_tree)
 		{
 			std::cout << v1.first << "," << v1.second.data() << "\n";
@@ -89,14 +98,14 @@ bool MessageParser::LoadXml(const std::string& file_path)
 				std::cout << fmt::format("msg_name {0} inherit {1}", msg_name, inherit.value());
 				if (!msg_name_struct_map_.count(*inherit))
 				{
-					std::cout << fmt::format("message {} cannot find inherit {}", msg_name, *inherit);
+					std::cout << fmt::format("message {} cannot find inherit {}.\n", msg_name, *inherit);
 					return false;
 				}
 			}
 
 			if (msg_name_struct_map_.count(msg_name))
 			{
-				std::cout << fmt::format("The message {} has been defined", msg_name);
+				std::cout << fmt::format("The message duplicate key,{} has been defined.\n", msg_name);
 				return false;
 			}
 
@@ -104,7 +113,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 			{
 				if (msg_pktno_struct_map_.count(pktno.value()))
 				{
-					std::cout << fmt::format("pktno {} has been defined,message {}", pktno.value(), msg_name);
+					std::cout << fmt::format("The message {} pktno duplicate key, {} has been defined.\n", msg_name, pktno.value());
 					return false;
 				}
 			}
@@ -125,9 +134,14 @@ bool MessageParser::LoadXml(const std::string& file_path)
 				{
 					if (!type_info_map_.count(primitive_type))
 					{
-						std::cout << fmt::format("message {} field {} primitive_type error\n", msg_name, field_name);
+						std::cout << fmt::format("The message {} field {} primitive_type {} cannot find.\n", msg_name, field_name, primitive_type);
 						return false;
 					}
+
+					//if (primitive_type == "FIXARRAY")
+					//{
+					//	auto len = v2.second.get_optional<int32_t>("<xmlattr>.length");
+					//}
 
 					FieldInfoBase simple_info(FieldType::Primitive, field_name, primitive_type, description);
 					msg_info.PushFiled(simple_info);
@@ -141,14 +155,14 @@ bool MessageParser::LoadXml(const std::string& file_path)
 					}
 					else
 					{
-						std::cout << fmt::format("message {} Sequence tag primitive_type {} info error\n", msg_name, primitive_type);
+						std::cout << fmt::format("The message {} Sequence tag primitive_type {} cannot find.\n", msg_name, primitive_type);
 						return false;
 					}
 
 				}
 				else
 				{
-					std::cout << fmt::format("message {} unkown field tag {}\n", msg_name, v2.first);
+					std::cout << fmt::format("The message {} unkown field tag {}\n", msg_name, v2.first);
 					return false;
 				}
 			}
@@ -162,6 +176,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 
 		}
 
+		//常量
 		if (constants_tree)
 		{
 			for (auto& v1 : *constants_tree)
@@ -190,7 +205,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 
 				if (const_name_map_.count(name))
 				{
-					std::cout << fmt::format("const name {} has been defined\n", name);
+					std::cout << fmt::format("const name  duplicate key,{} has been defined.\n", name);
 					return false;
 				}
 
@@ -208,27 +223,27 @@ bool MessageParser::LoadXml(const std::string& file_path)
 	return true;
 }
 
-bool MessageParser::Write(const std::string& template_path,const std::string& write_path)
+bool MessageParser::Write(const std::string& template_path, const std::string& write_path)
 {
-	
-
 	try
 	{
 		boost::filesystem::create_directories(write_path);
-		inja::Environment env{ template_path + "\\",write_path+"\\" };
+		inja::Environment env{ template_path + "\\",write_path + "\\" };
 		env.set_trim_blocks(true); //将删除语句后的第一个换行符
 		env.set_lstrip_blocks(true);//
 
 		if (1)
 		{
 
+			std::cout << fmt::format("parse TEMPLATE_MESSAGE_H\n");
 			inja::Template temp_msg_h = env.parse_template("TEMPLATE_MESSAGE_H.txt");
+			std::cout << fmt::format("parse TEMPLATE_MESSAGE_CPP\n");
 			inja::Template temp_msg_cpp = env.parse_template("TEMPLATE_MESSAGE_CPP.txt");
 
 			for (auto& [key, value] : msg_name_struct_map_)
 			{
 				inja::json json;
-				json["NAMESPACE"] = "hao";
+				json["NAMESPACE"] = "HAO";
 				json["MSG_DESCRIPTION"] = value.GetDescription();
 				json["MSG_INHERIT"] = value.GetInherit();
 				json["MSG_PKT_NO"] = value.GetPktNo();
@@ -244,11 +259,18 @@ bool MessageParser::Write(const std::string& template_path,const std::string& wr
 					j_field["F_NAME"] = f.GetName();
 					j_field["F_PRIMITIVE_TYPE"] = f.GetPrimitiveType();
 					auto type_info = type_info_map_[f.GetPrimitiveType()];
-					j_field["F_TYPE_INFO"] = { {"T_NAME",type_info.GetName()},{"T_PRIMITIVE_TYPE",type_info.GetPrimitiveType()},{"T_LENGTH",type_info.GetLength()} };
+					j_field["F_TYPE_INFO"] =
+					{
+						{"T_NAME",type_info.GetName()},
+						{"T_PRIMITIVE_TYPE",type_info.GetPrimitiveType()},
+						{"T_LENGTH",type_info.GetLength()}
+					};
 					json["FIELDS"].push_back(j_field);
 				}
 
+				std::cout << fmt::format("write {}.h\n",key);
 				env.write(temp_msg_h, json, key + ".h");
+				std::cout << fmt::format("write {}.cpp\n", key);
 				env.write(temp_msg_cpp, json, key + ".cpp");
 
 			}
@@ -256,24 +278,26 @@ bool MessageParser::Write(const std::string& template_path,const std::string& wr
 
 		if (1)
 		{
+			std::cout << fmt::format("parse TEMPLATE_TYPES_H\n");
 			inja::Template temp_types_h = env.parse_template("TEMPLATE_TYPES_H.txt");
 			inja::json json_types;
-			json_types["NAMESPACE"] = "hao";
-			json_types["TYPES"].push_back({ {"T_NAME","char"},{"T_PRIMITIVE_TYPE","char"},{"T_LENGTH",0},{"T_DESCRIPTION","char"} });
-			json_types["TYPES"].push_back({ {"T_NAME","uchar"},{"T_PRIMITIVE_TYPE","uchar"},{"T_LENGTH",0},{"T_DESCRIPTION","unsigned char"} });
-			json_types["TYPES"].push_back({ {"T_NAME","bool"},{"T_PRIMITIVE_TYPE","bool"},{"T_LENGTH",0},{"T_DESCRIPTION","bool"} });
-			json_types["TYPES"].push_back({ {"T_NAME","int8"},{"T_PRIMITIVE_TYPE","int8"},{"T_LENGTH",0},{"T_DESCRIPTION","int8_t"} });
-			json_types["TYPES"].push_back({ {"T_NAME","uint8"},{"T_PRIMITIVE_TYPE","uint8"},{"T_LENGTH",0},{"T_DESCRIPTION","uint8_t"} });
-			json_types["TYPES"].push_back({ {"T_NAME","int16"},{"T_PRIMITIVE_TYPE","int16"},{"T_LENGTH",0},{"T_DESCRIPTION","int8_t"} });
-			json_types["TYPES"].push_back({ {"T_NAME","uint16"},{"T_PRIMITIVE_TYPE","uint16"},{"T_LENGTH",0},{"T_DESCRIPTION","uint16_t"} });
-			json_types["TYPES"].push_back({ {"T_NAME","int32"},{"T_PRIMITIVE_TYPE","int32"},{"T_LENGTH",0},{"T_DESCRIPTION","int32_t"} });
-			json_types["TYPES"].push_back({ {"T_NAME","uint32"},{"T_PRIMITIVE_TYPE","uint32"},{"T_LENGTH",0},{"T_DESCRIPTION","uint32_t"} });
-			json_types["TYPES"].push_back({ {"T_NAME","int64"},{"T_PRIMITIVE_TYPE","int64"},{"T_LENGTH",0},{"T_DESCRIPTION","int64_t"} });
-			json_types["TYPES"].push_back({ {"T_NAME","uint64"},{"T_PRIMITIVE_TYPE","uint64"},{"T_LENGTH",0},{"T_DESCRIPTION","uint64_t"} });
-			json_types["TYPES"].push_back({ {"T_NAME","string"},{"T_PRIMITIVE_TYPE","string"},{"T_LENGTH",std::numeric_limits<uint32_t>::max()},{"T_DESCRIPTION","std::string"} });
+			json_types["NAMESPACE"] = "HAO";
+			json_types["TYPES"].push_back({ {"T_NAME","CHAR"},{"T_PRIMITIVE_TYPE","CHAR"},{"T_LENGTH",0},{"T_DESCRIPTION","CHAR"} });
+			json_types["TYPES"].push_back({ {"T_NAME","UCHAR"},{"T_PRIMITIVE_TYPE","UCHAR"},{"T_LENGTH",0},{"T_DESCRIPTION","UNSIGNED CHAR"} });
+			json_types["TYPES"].push_back({ {"T_NAME","BOOL"},{"T_PRIMITIVE_TYPE","BOOL"},{"T_LENGTH",0},{"T_DESCRIPTION","BOOL"} });
+			json_types["TYPES"].push_back({ {"T_NAME","INT8"},{"T_PRIMITIVE_TYPE","INT8"},{"T_LENGTH",0},{"T_DESCRIPTION","INT8_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","UINT8"},{"T_PRIMITIVE_TYPE","UINT8"},{"T_LENGTH",0},{"T_DESCRIPTION","UINT8_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","INT16"},{"T_PRIMITIVE_TYPE","INT16"},{"T_LENGTH",0},{"T_DESCRIPTION","INT8_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","UINT16"},{"T_PRIMITIVE_TYPE","UINT16"},{"T_LENGTH",0},{"T_DESCRIPTION","UINT16_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","INT32"},{"T_PRIMITIVE_TYPE","INT32"},{"T_LENGTH",0},{"T_DESCRIPTION","INT32_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","UINT32"},{"T_PRIMITIVE_TYPE","UINT32"},{"T_LENGTH",0},{"T_DESCRIPTION","UINT32_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","INT64"},{"T_PRIMITIVE_TYPE","INT64"},{"T_LENGTH",0},{"T_DESCRIPTION","INT64_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","UINT64"},{"T_PRIMITIVE_TYPE","UINT64"},{"T_LENGTH",0},{"T_DESCRIPTION","UINT64_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","STRING"},{"T_PRIMITIVE_TYPE","STRING"},{"T_LENGTH",std::numeric_limits<uint32_t>::max()},{"T_DESCRIPTION","STD::STRING"} });
+
 			for (auto& [key, value] : type_info_map_)
 			{
-				static std::unordered_set<std::string> s_set{ "bool","char","uchar","int8","uint8","int16","uint16","int32","uint32","int64","uint64","string" };
+				static std::unordered_set<std::string> s_set{ "BOOL","CHAR","UCHAR","INT8","UINT8","INT16","UINT16","INT32","UINT32","INT64","UINT64","STRING" };
 				if (s_set.count(key))
 					continue;
 
@@ -282,23 +306,32 @@ bool MessageParser::Write(const std::string& template_path,const std::string& wr
 				int32_t  length_ = 0;
 				std::string description_;
 
-				json_types["TYPES"].push_back({ {"T_NAME",value.GetName()},{"T_PRIMITIVE_TYPE",value.GetPrimitiveType()},
-					{"T_LENGTH",value.GetLength()},{"T_DESCRIPTION",value.GetDescription()} });
+				json_types["TYPES"].push_back(
+					{
+					{"T_NAME",value.GetName()},
+					{"T_PRIMITIVE_TYPE",value.GetPrimitiveType()},
+					{"T_LENGTH",value.GetLength()},
+					{"T_DESCRIPTION",value.GetDescription()}
+					});
+
 			}
 
 			std::cout << json_types << "\n";
 
+			std::cout << fmt::format("write Types.h\n");
 			env.write(temp_types_h, json_types, "Types.h");
 		}
 
 		if (1)
 		{
+			std::cout << fmt::format("parse TEMPLATE_CONSTANTS_H\n");
 			inja::Template temp_constants_h = env.parse_template("TEMPLATE_CONSTANTS_H.txt");
+			std::cout << fmt::format("parse TEMPLATE_CONSTANTS_CPP\n");
 			inja::Template temp_constants_cpp = env.parse_template("TEMPLATE_CONSTANTS_CPP.txt");
 			inja::json json_constants;
-			json_constants["NAMESPACE"] = "hao";
+			json_constants["NAMESPACE"] = "HAO";
 
-			for (auto& [key,value]: const_name_map_)
+			for (auto& [key, value] : const_name_map_)
 			{
 				inja::json json;
 				json["CONST_DESCRIPTION"] = value.GetDescription();
@@ -319,11 +352,14 @@ bool MessageParser::Write(const std::string& template_path,const std::string& wr
 					json["FIELDS"].push_back(j_field);
 				}
 				std::cout << json << "\n";
-				json_constants["CONSTANTS"].push_back(json );
+				json_constants["CONSTANTS"].push_back(json);
 			}
 
 			std::cout << json_constants << "\n";
+
+			std::cout << fmt::format("write Constants.h\n");
 			env.write(temp_constants_h, json_constants, "Constants.h");
+			std::cout << fmt::format("write Constants.cpp\n");
 			env.write(temp_constants_cpp, json_constants, "Constants.cpp");
 			int i;
 			i = 0;
@@ -336,8 +372,8 @@ bool MessageParser::Write(const std::string& template_path,const std::string& wr
 		std::cout << "Template write exception::" << e.what() << "\n";
 		return false;
 	}
-	
-	
+
+
 
 	return false;
 }

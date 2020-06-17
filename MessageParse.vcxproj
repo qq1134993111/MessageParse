@@ -170,6 +170,7 @@
     <Text Include="template_files\TEMPLATE_TYPES_H.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MessageParse.h" />
     <ClInclude Include="mp\ArrayUtil.h" />
     <ClInclude Include="mp\MessageDecoder.h" />
     <ClInclude Include="mp\MessageEncoder.h" />

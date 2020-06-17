@@ -4,28 +4,29 @@
 #include<string>
 #include<array>
 #include<stdint.h>
+
 namespace {{NAMESPACE}}
 {
 ## for TYPE in TYPES
-     {#{{TYPE}}#}
-    {% if TYPE.T_PRIMITIVE_TYPE in ["int8","uint8","int16","uint16","int32","uint32","int64","uint64"] %}
-	     using {{TYPE.T_NAME}}={{TYPE.T_PRIMITIVE_TYPE}}_t;//{{TYPE.T_DESCRIPTION}}
-	{% endif %}
-	{#{% if TYPE.T_PRIMITIVE_TYPE == "char" %}
-	     using {{TYPE.T_NAME}}=char;//{{TYPE.T_DESCRIPTION}}
-	{% endif %}#}
-	{% if TYPE.T_PRIMITIVE_TYPE == "uchar" %}
-	     using {{TYPE.T_NAME}}=unsigned char;//{{TYPE.T_DESCRIPTION}}
-	{% endif %}
-	{% if TYPE.T_PRIMITIVE_TYPE == "string" %}
-	     using {{TYPE.T_NAME}}=std::string;//{{TYPE.T_DESCRIPTION}}
-	{% endif %}
-	{#{% if TYPE.T_PRIMITIVE_TYPE == "bool" %}
-	     using {{TYPE.T_NAME}}=bool;//{{TYPE.T_DESCRIPTION}}
-	{% endif %}#}
-	{% if TYPE.T_PRIMITIVE_TYPE == "FixArray" %}
-	     using {{TYPE.T_NAME}}=std::array<char,{{TYPE.T_LENGTH}}>;//{{TYPE.T_DESCRIPTION}}
-	{% endif %}
+    {#{TYPE}#}
+    {% if TYPE.T_PRIMITIVE_TYPE in ["INT8","UINT8","INT16","UINT16","INT32","UINT32","INT64","UINT64"] %}
+    using {{TYPE.T_NAME}} = {{lower(TYPE.T_PRIMITIVE_TYPE)}}_t;   //{{TYPE.T_DESCRIPTION}}
+    {% endif %}
+    {% if TYPE.T_PRIMITIVE_TYPE == "CHAR" %}
+    using {{TYPE.T_NAME}} = char;   //{{TYPE.T_DESCRIPTION}}
+    {% endif %}
+    {% if TYPE.T_PRIMITIVE_TYPE == "UCHAR" %}
+    using {{TYPE.T_NAME}} = unsigned char;   //{{TYPE.T_DESCRIPTION}}
+    {% endif %}
+    {% if TYPE.T_PRIMITIVE_TYPE == "STRING" %}
+    using {{TYPE.T_NAME}} = std::string;   //{{TYPE.T_DESCRIPTION}}
+    {% endif %}
+    {% if TYPE.T_PRIMITIVE_TYPE == "BOOL" %}
+    using {{TYPE.T_NAME}} = bool;   //{{TYPE.T_DESCRIPTION}}
+    {% endif %}
+    {% if TYPE.T_PRIMITIVE_TYPE == "FIXARRAY" %}
+    using {{TYPE.T_NAME}} = std::array<char,{{TYPE.T_LENGTH}}>;   //{{TYPE.T_DESCRIPTION}}
+    {% endif %}
 ## endfor
 
 }

@@ -7,26 +7,26 @@
 namespace {{NAMESPACE}}
 {
 ## for CONSTANT in CONSTANTS
-{#{CONSTANT}#}
-   class {{CONSTANT.CONST_NAME}}  //{{CONSTANT.CONST_DESCRIPTION}}
-   {
-public:
-       {#{CONSTANT}#}
-       bool IsValid(const {{CONSTANT.CONST_PRIMITIVE_TYPE}}& value);
+  {#{CONSTANT}#}
+  class {{CONSTANT.CONST_NAME}}  //{{CONSTANT.CONST_DESCRIPTION}}
+  {
+    public:
+      {#{CONSTANT}#}
+      bool IsValid(const {{CONSTANT.CONST_PRIMITIVE_TYPE}}& value);
 ## for FIELD in CONSTANT.FIELDS
-{#{{FIELD}}#}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FixArray" %}
-      inline static {{FIELD.F_PRIMITIVE_TYPE}} k{{FIELD.F_NAME}} =  mp::ToArray<{{FIELD.F_TYPE_INFO.T_LENGTH}}>("{{FIELD.F_VALUE}}"); //{{FIELD.F_DESCRIPTION}}
-       {% endif %}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="string" %}
-      inline  static {{FIELD.F_PRIMITIVE_TYPE}} k{{FIELD.F_NAME}} =  "{{FIELD.F_VALUE}}"; //{{FIELD.F_DESCRIPTION}}
-       {% endif %}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="FixArray" and FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="string" %}
-      inline  static {{FIELD.F_PRIMITIVE_TYPE}} k{{FIELD.F_NAME}} =  {{FIELD.F_VALUE}}; //{{FIELD.F_DESCRIPTION}}
-       {% endif %}
+      {#{{FIELD}}#}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FIXARRAY" %}
+      inline static {{FIELD.F_PRIMITIVE_TYPE}} k{{FIELD.F_NAME}} = mp::ToArray<{{FIELD.F_TYPE_INFO.T_LENGTH}}>("{{FIELD.F_VALUE}}"); //{{FIELD.F_DESCRIPTION}}
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING" %}
+      inline static {{FIELD.F_PRIMITIVE_TYPE}} k{{FIELD.F_NAME}} = "{{FIELD.F_VALUE}}"; //{{FIELD.F_DESCRIPTION}}
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="FIXARRAY" and FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="STRING" %}
+      inline static {{FIELD.F_PRIMITIVE_TYPE}} k{{FIELD.F_NAME}} = {{FIELD.F_VALUE}}; //{{FIELD.F_DESCRIPTION}}
+      {% endif %}
 ## endfor
 
-   }; //end of {{CONSTANT.CONST_NAME}} 
+  }; //end of {{CONSTANT.CONST_NAME}} 
 
 ## endfor
 

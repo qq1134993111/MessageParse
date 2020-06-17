@@ -2,13 +2,13 @@
 
 <File namespace="hao" version="0.1" Endian="0" description="test">
 <Types>
-	<Type name="Qty_Def" primitive_type="int64" description="最低成交数量" />
-	<Type name="AccountID_Def" primitive_type="FixArray" length="10" description="账户id" />
-	<Type name="UserInfo_Def" primitive_type="string"  description="用户信息" />
-	<Type name="Currency_Def" primitive_type="FixArray" length="5" description="币种" />
+	<Type name="Qty_Def" primitive_type="INT64" description="最低成交数量" />
+	<Type name="AccountID_Def" primitive_type="FIXARRAY" length="10" description="账户id" />
+	<Type name="UserInfo_Def" primitive_type="STRING"  description="用户信息" />
+	<Type name="Currency_Def" primitive_type="FIXARRAY" length="5" description="币种" />
 </Types>
 <Constants>
-	<Const name="MyConstType" primitive_type="int64" description="常量">
+	<Const name="MyConstType" primitive_type="INT64" description="常量">
 		<value name="all"  description="全部">10</value>
 	</Const>
 

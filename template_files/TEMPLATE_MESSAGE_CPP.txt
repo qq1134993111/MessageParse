@@ -7,192 +7,190 @@
 
 namespace {{NAMESPACE}}
 {
-   //{{MSG_NAME}} {{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
-   void {{MSG_NAME}}::FillDefaultValue()
-   {
-   	{% if exists("FIELDS") %}
-## for FIELD in FIELDS
-    {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="string"  %}
-       //{{ FIELD.F_NAME }}="";//{{ FIELD.F_DESCRIPTION }}
-       {% endif %}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FixArray"  %}
-       {{ FIELD.F_NAME }}.fill(' ');//{{ FIELD.F_DESCRIPTION }}
-       {% endif %}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["uchar","int16","uint16","int8","uint8","int32","uint32","int64","uint64"]  %}
-       {{ FIELD.F_NAME }}=0;//{{ FIELD.F_DESCRIPTION }}
-       {% endif %}
-       {% if FIELD.F_TYPE_INFO.T_NAME=="char"  %}
-       {{ FIELD.F_NAME }}=' ';//{{ FIELD.F_DESCRIPTION }}
-       {% endif %}
-       {% if FIELD.F_TYPE_INFO.T_NAME=="bool"  %}
-       {{ FIELD.F_NAME }}=false;//{{ FIELD.F_DESCRIPTION }}
-       {% endif %}
-	{% endif %}
-	{# 循环信息注释 {{ loop.index1 }}，{{ loop.index }}, {{ loop.is_first }},{{ loop.is_last }}    #}
-    {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
-       //{{ FIELD.F_NAME }};//{{ FIELD.F_DESCRIPTION }}
-	{% endif %}
-## endfor
-	{% endif %}
-   }
-
-   	
-   mp::ErrorCode {{MSG_NAME}}::Decode(mp::MessageDecoder& decoder)
-   {
-       mp::ErrorCode ec=mp::ErrorCode::kSuccess;
+  //{{MSG_NAME}} {{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
+  void {{MSG_NAME}}::FillDefaultValue()
+  {
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="string"  %}
-       uint32_t size_{{ FIELD.F_NAME }}=0;//数组大小
-       ec=decoder.Read(size_{{ FIELD.F_NAME }});
-       if(ec!=mp::ErrorCode::kSuccess) return ec;
-       {{ FIELD.F_NAME }}.resize(size_{{ FIELD.F_NAME }});//{{ FIELD.F_DESCRIPTION }}
-       ec=decoder.Read({{ FIELD.F_NAME }}.data(),{{ FIELD.F_NAME }}.size());
-       if(ec!=mp::ErrorCode::kSuccess) return ec;
-       {% endif %}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="string"  %}
-       ec=decoder.Read({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
-       if(ec!=mp::ErrorCode::kSuccess) return ec;
-       {% endif %}
-	{% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING"  %}
+      //{{ FIELD.F_NAME }} = ""; //{{ FIELD.F_DESCRIPTION }}
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FixArray"  %}
+      {{ FIELD.F_NAME }}.fill(' '); //{{ FIELD.F_DESCRIPTION }}
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["UCHAR","INT16","UINT16","INT8","UINT8","INT32","UINT32","INT64","UINT64"] %}
+      {{ FIELD.F_NAME }} = 0; //{{ FIELD.F_DESCRIPTION }}
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_NAME=="CHAR"  %}
+      {{ FIELD.F_NAME }} = ' '; //{{ FIELD.F_DESCRIPTION }}
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_NAME=="BOOL" %}
+      {{ FIELD.F_NAME }} = false; //{{ FIELD.F_DESCRIPTION }}
+      {% endif %}
+    {% endif %}
+    {# 循环信息注释 {{ loop.index1 }}，{{ loop.index }}, {{ loop.is_first }},{{ loop.is_last }}    #}
     {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="string"  %}
-       uint32_t size_{{ FIELD.F_NAME }}=0;//数组大小
-       ec=decoder.Read(size_{{ FIELD.F_NAME }});
-       if(ec!=mp::ErrorCode::kSuccess) return ec;
-       {{ FIELD.F_NAME }}.resize();
-       for(auto& item:{{ FIELD.F_NAME }})
-       {
-          uint32_t item_size=0;
-          ec=decoder.Read(item_size);
-          if(ec!=mp::ErrorCode::kSuccess) return ec;
+      //{{ FIELD.F_NAME }}.clear(); //{{ FIELD.F_DESCRIPTION }}
+    {% endif %}
+## endfor
+    {% endif %}
+  } //end FillDefaultValue
+
+  mp::ErrorCode {{MSG_NAME}}::Decode(mp::MessageDecoder& decoder)
+  {
+      mp::ErrorCode ec=mp::ErrorCode::kSuccess;
+    {% if exists("FIELDS") %}
+## for FIELD in FIELDS
+    {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING" %}
+      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
+      ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      {{ FIELD.F_NAME }}.resize(size_{{ lower(FIELD.F_NAME) }}); //{{ FIELD.F_DESCRIPTION }}
+      ec = decoder.Read({{ FIELD.F_NAME }}.data(),{{ FIELD.F_NAME }}.size());
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="STRING"  %}
+      ec = decoder.Read({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      {% endif %}
+    {% endif %}
+    {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING" %}
+      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
+      ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      {{ lower(FIELD.F_NAME) }}.resize();
+      for(auto& item : {{ FIELD.F_NAME }})
+      {
+          uint32_t item_size = 0;
+          ec = decoder.Read(item_size);
+          if (ec != mp::ErrorCode::kSuccess) return ec;
           item.resize(item_size);
-          ec=decoder.Read(item.data(),item.size());
-          if(ec!=mp::ErrorCode::kSuccess) return ec;
-       }
-         {% endif %}
-         {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["bool","char","uchar","int16","uint16","int8","uint8","int32","uint32","int64","uint64","FixArray"]  %}
-       uint32_t size_{{ FIELD.F_NAME }}=0;//数组大小
-       ec=decoder.Read(size_{{ FIELD.F_NAME }});
-       if(ec!=mp::ErrorCode::kSuccess) return ec;
-       {{ FIELD.F_NAME }}.resize( size_{{ FIELD.F_NAME }});
-       for(auto& item:{{ FIELD.F_NAME }})
-       {
-          ec=decoder.Read(item);
-          if(ec!=mp::ErrorCode::kSuccess) return ec;
-       }
-         {% endif %}
-         {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE==""  %}
-       uint32_t size_{{ FIELD.F_NAME }}=0;//数组大小
-       ec=decoder.Read(size_{{ FIELD.F_NAME }});
-       if(ec!=mp::ErrorCode::kSuccess) return ec;
-       {{ FIELD.F_NAME }}.resize(size_{{ FIELD.F_NAME }});
-       for(auto& item:{{ FIELD.F_NAME }})
-       {
-          ec=item.Decode(decoder);
-          if(ec!=mp::ErrorCode::kSuccess) return ec;
-       }
-         {% endif %}
-	{% endif %}
+          ec = decoder.Read(item.data(), item.size());
+          if (ec != mp::ErrorCode::kSuccess) return ec;
+      }
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT8","UINT8","INT16","UINT16","INT32","UINT32","INT64","UINT64","FIXARRAY"] %}
+      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
+      ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      {{ FIELD.F_NAME }}.resize(size_{{ lower(FIELD.F_NAME) }});
+      for(auto& item : {{ FIELD.F_NAME }})
+      {
+           ec = decoder.Read(item);
+           if (ec != mp::ErrorCode::kSuccess) return ec;
+      }
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE==""  %}
+      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
+      ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      {{ FIELD.F_NAME }}.resize(size_{{ lower(FIELD.F_NAME) }});
+      for(auto& item : {{ FIELD.F_NAME }})
+      {
+           ec=item.Decode(decoder);
+           if(ec!=mp::ErrorCode::kSuccess) return ec;
+      }
+      {% endif %}
+    {% endif %}
 ## endfor
-	{% endif %}
-       return ec;
-   }
+     {% endif %}
+      return ec;
+  } //end of Decode
    
-   mp::ErrorCode {{MSG_NAME}}::Encode(mp::MessageEncoder& encoder)
-   {
-       mp::ErrorCode ec=mp::ErrorCode::kSuccess;
+  mp::ErrorCode {{MSG_NAME}}::Encode(mp::MessageEncoder& encoder)
+  {
+      mp::ErrorCode ec=mp::ErrorCode::kSuccess;
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="string"  %}
-       ec=encoder.Write({{ FIELD.F_NAME }}.size());//{{ FIELD.F_DESCRIPTION }}
-       if(ec!=mp::ErrorCode::kSuccess) return ec;
-       ec=encoder.Write({{ FIELD.F_NAME }}.data(),{{ FIELD.F_NAME }}.size());
-       {% endif %}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="string"  %}
-       ec=encoder.Write({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
-       if(ec!=mp::ErrorCode::kSuccess) return ec;
-       {% endif %}
-	{% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING"  %}
+      ec = encoder.Write({{ FIELD.F_NAME }}.size()); //{{ FIELD.F_DESCRIPTION }}
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      ec = encoder.Write({{ FIELD.F_NAME }}.data(), {{ FIELD.F_NAME }}.size());
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="STRING" %}
+      ec = encoder.Write({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      {% endif %}
+    {% endif %}
     {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
-         {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="string"  %}
-        ec=encoder.Write({{ FIELD.F_NAME }}.size());//{{ FIELD.F_DESCRIPTION }}
-        if(ec!=mp::ErrorCode::kSuccess) return ec;
-        for(auto& item:{{ FIELD.F_NAME }})
-        {
-          ec=encode.Encode(item.size());
-          if(ec!=mp::ErrorCode::kSuccess) return ec;
-          ec=encode.Encode(item.data(),item.size());
-          if(ec!=mp::ErrorCode::kSuccess) return ec;
-        }
-         {% endif %}
-         {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["bool","char","uchar","int16","uint16","int8","uint8","int32","uint32","int64","uint64","FixArray"]  %}
-       ec=encoder.Write({{ FIELD.F_NAME }}.size());//{{ FIELD.F_DESCRIPTION }}
-       if(ec!=mp::ErrorCode::kSuccess) return ec;
-       for(auto& item:{{ FIELD.F_NAME }})
-       {
-          ec=encoder.Write(item);
-          if(ec!=mp::ErrorCode::kSuccess) return ec;
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING" %}
+      ec = encoder.Write({{ FIELD.F_NAME }}.size()); //{{ FIELD.F_DESCRIPTION }}
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      for(auto& item : {{ FIELD.F_NAME }})
+      {
+          ec = encode.Encode(item.size());
+          if (ec != mp::ErrorCode::kSuccess) return ec;
+          ec = encode.Encode(item.data(), item.size());
+          if (ec != mp::ErrorCode::kSuccess) return ec;
        }
-         {% endif %}
-         {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE==""  %}
-       ec=encoder.Write({{ FIELD.F_NAME }}.size());//{{ FIELD.F_DESCRIPTION }}
-       if(ec!=mp::ErrorCode::kSuccess) return ec;
-       for(auto& item:{{ FIELD.F_NAME }})
-       {
-          ec=item.Encode(encoder);
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT16","UINT16","INT8","UINT8","INT32","UINT32","INT64","UINT64","FIXARRAY"] %}
+      ec = encoder.Write({{ FIELD.F_NAME }}.size()); //{{ FIELD.F_DESCRIPTION }}
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      for(auto& item : {{ FIELD.F_NAME }})
+      {
+          ec = encoder.Write(item);
           if(ec!=mp::ErrorCode::kSuccess) return ec;
+      }
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE==""  %}
+      ec = encoder.Write({{ FIELD.F_NAME }}.size());//{{ FIELD.F_DESCRIPTION }}
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+      for(auto& item : {{ FIELD.F_NAME }})
+      {
+          ec = item.Encode(encoder);
+          if (ec != mp::ErrorCode::kSuccess) return ec;
        }
-         {% endif %}
-	{% endif %}
+      {% endif %}
+    {% endif %}
 ## endfor
-	{% endif %}
-       return ec;
-
-   }
+    {% endif %}
+      return ec;
+  }
    
-   void {{MSG_NAME}}::Dump(std::ostream& ostream) 
-   {
-       ostream<<"{{MSG_NAME}}"<<" "<<{{MSG_PKT_NO}}<<":";
+  void {{MSG_NAME}}::Dump(std::ostream& ostream) 
+  {
+      ostream << "[{{MSG_NAME}}]" << "[{{MSG_PKT_NO}}]:";
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
-       {# 注释调试 {{FIELD}} #}
+    {# 注释调试 {{FIELD}} #}
     {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FixArray"  %}
-       ostream<<mp::ToStringTrim({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
-       {% endif %}
-       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="FixArray"  %}
-       ostream<<"{{ FIELD.F_NAME }}"; //{{ FIELD.F_DESCRIPTION }}
-       {% endif %}
-       {%if not loop.is_last  %}
-       ostream<<"|"; 
-       {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FIXARRAY"  %}
+      ostream << mp::ToStringTrim({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
+      {% endif %}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="FIXARRAY" %}
+      ostream << "{{ FIELD.F_NAME }}"; //{{ FIELD.F_DESCRIPTION }}
+      {% endif %}
+      {%if not loop.is_last  %}
+      ostream << "|"; 
+      {% endif %}
 	{% endif %}
     {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
-       ostream<<"{{ FIELD.F_NAME }}"<<" size:"<<{{ FIELD.F_NAME }}.size()<<"[";
-       for(auto& item:{{ FIELD.F_NAME }})  //{{ FIELD.F_DESCRIPTION }}
-       {
-         {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FixArray"  %}
-           ostream<<mp::ToStringTrim(item)<<","; 
-         {% endif %}
-         {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["bool","char","uchar","int16","uint16","int8","uint8","int32","uint32","int64","uint64","string"]  %}
-             ostream<<item<<"," ;
-         {% endif %}
-         {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE==""  %}
-           item.Dump(ostream);
-           ostream<<",";
-         {% endif %}
-       }
-       ostream<<"]";
-       {%if not loop.is_last  %}
-       ostream<<"|"; 
-       {% endif %}
-	{% endif %}
+      ostream << "{{ FIELD.F_NAME }}" << " size:" << {{ FIELD.F_NAME }}.size() << "[" ;
+      for(auto& item : {{ FIELD.F_NAME }}) //{{ FIELD.F_DESCRIPTION }}
+      {
+          {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FIXARRAY"  %}
+          ostream << mp::ToStringTrim(item) << ","; 
+          {% endif %}
+          {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT16","UINT16","INT8","UINT8","INT32","UINT32","INT64","UINT64","STRING"] %}
+          ostream << item << ",";
+          {% endif %}
+          {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE==""  %}
+          item.Dump(ostream);
+          ostream << ",";
+          {% endif %}
+      }
+      ostream<<"]";
+      {%if not loop.is_last  %}
+      ostream << "|"; 
+      {% endif %}
+    {% endif %}
 ## endfor
-	{% endif %}
-   } 
+    {% endif %}
+  } //end of Dump
 
 }//end of {{NAMESPACE}}

@@ -3,14 +3,17 @@
 
 #include<vector>
 #include"Types.h"
-{% if  MSG_INHERIT=="" %}#include"MessageBase.h"{% endif %}
-{% if  MSG_INHERIT!="" %}#include"{{MSG_INHERIT}}.h" {% endif %}
-
+{% if MSG_INHERIT=="" %}
+#include"MessageBase.h"
+{% endif %}
+{% if MSG_INHERIT!="" %}
+#include"{{MSG_INHERIT}}.h"
+{% endif %}
 ## for FIELD in FIELDS
     {#{ FIELD }#}
-	{% if FIELD.F_FILED_TYPE==1 and FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="" %}
+    {% if FIELD.F_FILED_TYPE==1 and FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="" %}
 #include"{{ FIELD.F_PRIMITIVE_TYPE }}.h"
-	{% endif %}
+    {% endif %}
 ## endfor
 
 namespace {{NAMESPACE}}
@@ -20,31 +23,26 @@ namespace {{NAMESPACE}}
   {% endif %} {% if  MSG_INHERIT=="" %} mp::MessageBase 
   {% endif %}
   {
-   public:
-    {{MSG_NAME}}(){}
-	~{{MSG_NAME}}(){}
-  	virtual uint32_t GetMsgType() override { return {{MSG_PKT_NO}};} //{{MSG_DESCRIPTION}}
-
-    virtual void FillDefaultValue()  override;
-    
-	virtual mp::ErrorCode Decode(mp::MessageDecoder& decoder)  override;
-    
-	virtual mp::ErrorCode Encode(mp::MessageEncoder& encoder) override;
-    
-	virtual void Dump(std::ostream& ostream) override;
-	
-	{% if exists("FIELDS") %}
+    public:
+      {{MSG_NAME}}(){}
+      ~{{MSG_NAME}}(){}
+      virtual uint32_t GetMsgType() override { return {{MSG_PKT_NO}};} //{{MSG_DESCRIPTION}}
+      virtual void FillDefaultValue() override;
+      virtual mp::ErrorCode Decode(mp::MessageDecoder& decoder) override;
+      virtual mp::ErrorCode Encode(mp::MessageEncoder& encoder) override;
+      virtual void Dump(std::ostream& ostream) override;
+    public:
+    {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
-    {{ FIELD.F_PRIMITIVE_TYPE }}  {{ FIELD.F_NAME }};//{{ FIELD.F_DESCRIPTION }}
-	{% endif %}
-	{# 循环信息注释 {{ loop.index1 }}，{{ loop.index }}, {{ loop.is_first }},{{ loop.is_last }}    #}
-	{% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
-    std::vector<{{ FIELD.F_PRIMITIVE_TYPE }}>  {{ FIELD.F_NAME }};//{{ FIELD.F_DESCRIPTION }}
-	{% endif %}
+      {{ FIELD.F_PRIMITIVE_TYPE }} {{ FIELD.F_NAME }}; //{{ FIELD.F_DESCRIPTION }}
+    {% endif %}
+    {# 循环信息注释 {{ loop.index1 }}，{{ loop.index }}, {{ loop.is_first }},{{ loop.is_last }}    #}
+    {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
+      std::vector<{{ FIELD.F_PRIMITIVE_TYPE }}> {{ FIELD.F_NAME }}; //{{ FIELD.F_DESCRIPTION }}
+    {% endif %}
 ## endfor
-	{% endif %}
+    {% endif %}
+  }; //end of {{MSG_NAME}}
 
-  };//end of {{MSG_NAME}}
-
-}//end of {{NAMESPACE}}
+} //end of {{NAMESPACE}}

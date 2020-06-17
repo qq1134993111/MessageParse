@@ -6,24 +6,24 @@
 namespace {{NAMESPACE}}
 {
 ## for CONSTANT in CONSTANTS
-{#{CONSTANT}#}
-   //{{CONSTANT.CONST_NAME}}  {{CONSTANT.CONST_DESCRIPTION}}
-   bool {{CONSTANT.CONST_NAME}}::IsValid(const {{CONSTANT.CONST_PRIMITIVE_TYPE}}& value)
-   {
+  {#{CONSTANT}#}
+  //{{CONSTANT.CONST_NAME}}  {{CONSTANT.CONST_DESCRIPTION}}
+  bool {{CONSTANT.CONST_NAME}}::IsValid(const {{CONSTANT.CONST_PRIMITIVE_TYPE}}& value)
+  {
 ## for FIELD in CONSTANT.FIELDS
-       {% if loop.is_first %}       
-       return (
-       value==k{{FIELD.F_NAME}} //{{FIELD.F_DESCRIPTION}}
-       {% endif %}
-       {% if not loop.is_first and not loop.is_last %}
-       ||value==k{{FIELD.F_NAME}}  //{{FIELD.F_DESCRIPTION}}
-       {% endif %}
-       {% if loop.is_last %}
-       ||value==k{{FIELD.F_NAME}}  //{{FIELD.F_DESCRIPTION}}
-       );
-       {% endif %}
+      {% if loop.is_first %}       
+      return (
+                value==k{{FIELD.F_NAME}} //{{FIELD.F_DESCRIPTION}}
+      {% endif %}
+      {% if not loop.is_first and not loop.is_last %}
+              ||value==k{{FIELD.F_NAME}} //{{FIELD.F_DESCRIPTION}}
+      {% endif %}
+      {% if loop.is_last %}
+              ||value==k{{FIELD.F_NAME}} //{{FIELD.F_DESCRIPTION}}
+             );
+      {% endif %}
 ## endfor
-   }
+  }
 
 ## endfor
 

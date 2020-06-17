@@ -255,8 +255,19 @@ namespace TypeRecognition
 {
 	static std::unordered_map<std::string, int32_t> PrimitiveTypeMap =
 	{
-		{"char",1},{"uchar",1} ,{"bool",1},{"int8",1},{"uint8",1},{"int16",2},{"uint16",2},
-		{"int32",4},{"uint32",4},{"int64",8},{"uint64",8},{"FixArray",-1},{"string",-1}
+		{"CHAR",1},
+		{"UCHAR",1},
+		{"BOOL",1},
+		{"INT8",1},
+		{"UINT8",1},
+		{"INT16",2},
+		{"UINT16",2},
+		{"INT32",4},
+		{"UINT32",4},
+		{"INT64",8},
+		{"UINT64",8},
+		{"FIXARRAY",-1},
+		{"STRING",-1}
 	};
 
 	static bool IsPrimitiveTypeValid(const std::string& type)
@@ -266,17 +277,17 @@ namespace TypeRecognition
 
 	static bool IsPrimitiveTypeInt(const std::string& type)
 	{
-		return  type.compare("string") != 0 && type.compare("FixArray") != 0;
+		return  type.compare("STRING") != 0 && type.compare("FIXARRAY") != 0;
 	}
 
 	static bool IsPrimitiveTypeString(const std::string& type)
 	{
-		return type.compare("string") == 0;
+		return type.compare("STRING") == 0;
 	}
 
 	static bool IsPrimitiveTypeFixArray(const std::string& type)
 	{
-		return type.compare("FixArray") == 0;
+		return type.compare("FIXARRAY") == 0;
 	}
 };
 
@@ -288,18 +299,18 @@ public:
 	{
 		type_info_map_ =
 		{
-			{"char",{"char","char",0,""}},
-			{"uchar",{"uchar","uchar",0,""}},
-			{"bool",{"bool","bool",0,""}},
-			{"int8",{"int8","int8",0,""}},
-			{"uint8",{"uint8","uint8",0,""}},
-			{"int16",{"int16","int16",0,""}},
-			{"uint16",{"uint16","uint16",0,""}},
-			{"int32",{"int32","int32",0,""}},
-			{"int64",{"int64","int64",0,""}},
-			{"uint64",{"uint64","uint64",0,""}},
-			{"string",{"string","string",std::numeric_limits<uint32_t>::max(),""}}
-			//{"FixArray",{"FixArray","FixArray",0,""}}
+			//基本类型
+			{"CHAR",{"CHAR","CHAR",0,""}},
+			{"UCHAR",{"UCHAR","UCHAR",0,""}},
+			{"BOOL",{"BOOL","BOOL",0,""}},
+			{"INT8",{"INT8","INT8",0,""}},
+			{"UINT8",{"UINT8","UINT8",0,""}},
+			{"INT16",{"INT16","INT16",0,""}},
+			{"UINT16",{"UINT16","UINT16",0,""}},
+			{"INT32",{"INT32","INT32",0,""}},
+			{"INT64",{"INT64","INT64",0,""}},
+			{"UINT64",{"UINT64","UINT64",0,""}},
+			{"STRING",{"STRING","STRING",std::numeric_limits<uint32_t>::max(),""}}
 		};
 	}
 	virtual ~MessageParser() {}

@@ -53,5 +53,8 @@
     <ClInclude Include="mp\MessageBase.h" />
     <ClInclude Include="mp\MessageDecoder.h" />
     <ClInclude Include="mp\MessageEncoder.h" />
+    <ClInclude Include="MessageParse.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

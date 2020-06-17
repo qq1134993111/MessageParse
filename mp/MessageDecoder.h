@@ -9,6 +9,7 @@ namespace mp
 		ErrorCode Read(T& value)
 		{
 			return ErrorCode::kSuccess;
+		
 		}
 
 		ErrorCode Read(char* p,size_t size)
