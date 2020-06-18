@@ -129,28 +129,57 @@ bool MessageParser::LoadXml(const std::string& file_path)
 				std::string field_name = v2.second.get<std::string>("<xmlattr>.name");
 				std::string primitive_type = v2.second.get<std::string>("<xmlattr>.primitive_type");
 				std::string description = v2.second.get<std::string>("<xmlattr>.description");
+				auto len = v2.second.get_optional<int32_t>("<xmlattr>.length");
 
 				if (v2.first == "Field")
 				{
-					if (!type_info_map_.count(primitive_type))
+					if (!type_info_map_.count(primitive_type) && !TypeRecognition::IsPrimitiveTypeValid(primitive_type))
 					{
 						std::cout << fmt::format("The message {} field {} primitive_type {} cannot find.\n", msg_name, field_name, primitive_type);
 						return false;
 					}
 
-					//if (primitive_type == "FIXARRAY")
-					//{
-					//	auto len = v2.second.get_optional<int32_t>("<xmlattr>.length");
-					//}
+					if (TypeRecognition::IsPrimitiveTypeFixArray(primitive_type))
+					{
+						if (!len)
+						{
+							//std::cout << "primitive_type length error:" << type_info.primitive_type << "\n";
+							std::cout << fmt::format("The message {0} field {1} primitive_type {2} length not valid,must set value.", msg_name, field_name, primitive_type);
+							return false;
+						}
 
-					FieldInfoBase simple_info(FieldType::Primitive, field_name, primitive_type, description);
+						if (len.value() <= 0)
+						{
+							std::cout << fmt::format("The message {0} field {1} primitive_type {2} length is {3},must >= 0", msg_name, field_name, primitive_type, len.value());
+							return false;
+						}
+					}
+
+					FieldInfoBase simple_info(FieldType::Primitive, field_name, primitive_type,len.value_or(0), description);
 					msg_info.PushFiled(simple_info);
 				}
 				else if (v2.first == "Sequence")
 				{
-					if (msg_name_struct_map_.count(primitive_type) || type_info_map_.count(primitive_type))
+					if (msg_name_struct_map_.count(primitive_type) || type_info_map_.count(primitive_type)|| TypeRecognition::IsPrimitiveTypeValid(primitive_type))
 					{
-						FieldInfoBase struct_info(FieldType::Sequence, field_name, primitive_type, description);
+
+						if (TypeRecognition::IsPrimitiveTypeFixArray(primitive_type))
+						{
+							if (!len)
+							{
+								//std::cout << "primitive_type length error:" << type_info.primitive_type << "\n";
+								std::cout << fmt::format("The message {0} field {1} primitive_type {2} length not valid,must set value.", msg_name, field_name, primitive_type);
+								return false;
+							}
+
+							if (len.value() <= 0)
+							{
+								std::cout << fmt::format("The message {0} field {1} primitive_type {2} length is {3},must >= 0", msg_name, field_name, primitive_type, len.value());
+								return false;
+							}
+						}
+
+						FieldInfoBase struct_info(FieldType::Sequence, field_name, primitive_type,len.value_or(0), description);
 						msg_info.PushFiled(struct_info);
 					}
 					else
@@ -186,8 +215,25 @@ bool MessageParser::LoadXml(const std::string& file_path)
 				std::string name = v1.second.get<std::string>("<xmlattr>.name");
 				auto primitive_type = v1.second.get<std::string>("<xmlattr>.primitive_type");
 				std::string description = v1.second.get<std::string>("<xmlattr>.description");
+				auto len = v1.second.get_optional<int32_t>("<xmlattr>.length");
 
-				ConstInfoBase const_info(name, primitive_type, description);
+				if (TypeRecognition::IsPrimitiveTypeFixArray(primitive_type))
+				{
+					if (!len)
+					{
+						//std::cout << "primitive_type length error:" << type_info.primitive_type << "\n";
+						std::cout << fmt::format("The Const {0} primitive_type {1} length not valid,must set value.", name, primitive_type);
+						return false;
+					}
+
+					if (len.value() <= 0)
+					{
+						std::cout << fmt::format("The Const {0} primitive_type {1} length is {2},must >= 0",name, primitive_type, len.value());
+						return false;
+					}
+				}
+
+				ConstInfoBase const_info(name, primitive_type,len.value_or(0), description);
 				for (auto& v2 : v1.second)
 				{
 					if (v2.first == "<xmlattr>")
@@ -198,7 +244,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 					std::string description = v2.second.get<std::string>("<xmlattr>.description");
 					std::string value = v2.second.get<std::string>("");
 
-					FieldInfoValue field(field_name, primitive_type, value, description);
+					FieldInfoValue field(value,field_name, primitive_type,len.value_or(0), description);
 
 					const_info.PushFiled(field);
 				}
@@ -227,8 +273,44 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 {
 	try
 	{
+		bool revised_type = true;
 		boost::filesystem::create_directories(write_path);
 		inja::Environment env{ template_path + "\\",write_path + "\\" };
+		env.add_callback("RevisedType", 2,
+			[&](inja::Arguments& args)
+			{
+				std::string type_name = args.at(0)->get<std::string>();
+				if (revised_type)
+				{
+					static	std::unordered_map<std::string, std::string>  s_umap
+					{
+						{"CHAR","char"},
+						{"UCHAR","unsigned char"},
+						{"BOOL","bool"},
+						{"INT8","int8_t"},
+						{"UINT8","uint8_t"},
+						{"INT16","int16_t" },
+						{"UINT16","uint16_t"},
+						{"INT32","int32_t"},
+						{"UINT32","uint32_t"},
+						{"INT64","int64_t"},
+						{"UINT64","uint64_t"},
+						{"STRING","std::string"}
+					};
+
+					auto it = s_umap.find(type_name);
+					if (it != s_umap.end())
+						return it->second;
+				}
+
+				if (type_name == "FIXARRAY")
+				{
+					return fmt::format("std::array<char,{}>", args.at(1)->get<uint32_t>());
+				}
+
+				return type_name;
+
+			});
 		env.set_trim_blocks(true); //将删除语句后的第一个换行符
 		env.set_lstrip_blocks(true);//
 
@@ -258,6 +340,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 					j_field["F_FILED_TYPE"] = f.GetFiledType();
 					j_field["F_NAME"] = f.GetName();
 					j_field["F_PRIMITIVE_TYPE"] = f.GetPrimitiveType();
+					j_field["F_LENGTH"] = f.GetLength();
 					auto type_info = type_info_map_[f.GetPrimitiveType()];
 					j_field["F_TYPE_INFO"] =
 					{
@@ -337,7 +420,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 				json["CONST_DESCRIPTION"] = value.GetDescription();
 				json["CONST_NAME"] = value.GetName();
 				json["CONST_PRIMITIVE_TYPE"] = value.GetPrimitiveType();
-
+				json["CONST_LENGTH"] = value.GetLength();
 				auto field_info = value.GetFields();
 
 				for (auto& f : field_info)
@@ -347,6 +430,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 					j_field["F_DESCRIPTION"] = f.GetDescription();
 					j_field["F_NAME"] = f.GetName();
 					j_field["F_PRIMITIVE_TYPE"] = f.GetPrimitiveType();
+					j_field["F_LENGTH"] = f.GetLength();
 					auto type_info = type_info_map_[f.GetPrimitiveType()];
 					j_field["F_TYPE_INFO"] = { {"T_NAME",type_info.GetName()},{"T_PRIMITIVE_TYPE",type_info.GetPrimitiveType()},{"T_LENGTH",type_info.GetLength()} };
 					json["FIELDS"].push_back(j_field);

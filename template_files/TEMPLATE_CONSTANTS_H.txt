@@ -12,17 +12,17 @@ namespace {{NAMESPACE}}
   {
     public:
       {#{CONSTANT}#}
-      bool IsValid(const {{CONSTANT.CONST_PRIMITIVE_TYPE}}& value);
+      bool IsValid(const {{RevisedType(CONSTANT.CONST_PRIMITIVE_TYPE,CONSTANT.CONST_LENGTH)}}& value);
 ## for FIELD in CONSTANT.FIELDS
       {#{{FIELD}}#}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FIXARRAY" %}
-      inline static {{FIELD.F_PRIMITIVE_TYPE}} k{{FIELD.F_NAME}} = mp::ToArray<{{FIELD.F_TYPE_INFO.T_LENGTH}}>("{{FIELD.F_VALUE}}"); //{{FIELD.F_DESCRIPTION}}
+      inline static {{RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH)}} k{{FIELD.F_NAME}} = mp::ToArray<{{FIELD.F_TYPE_INFO.T_LENGTH}}>("{{FIELD.F_VALUE}}"); //{{FIELD.F_DESCRIPTION}}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING" %}
-      inline static {{FIELD.F_PRIMITIVE_TYPE}} k{{FIELD.F_NAME}} = "{{FIELD.F_VALUE}}"; //{{FIELD.F_DESCRIPTION}}
+      inline static {{RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH)}} k{{FIELD.F_NAME}} = "{{FIELD.F_VALUE}}"; //{{FIELD.F_DESCRIPTION}}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="FIXARRAY" and FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="STRING" %}
-      inline static {{FIELD.F_PRIMITIVE_TYPE}} k{{FIELD.F_NAME}} = {{FIELD.F_VALUE}}; //{{FIELD.F_DESCRIPTION}}
+      inline static {{RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH)}} k{{FIELD.F_NAME}} = {{FIELD.F_VALUE}}; //{{FIELD.F_DESCRIPTION}}
       {% endif %}
 ## endfor
 

@@ -21,7 +21,9 @@
 <Messages>
 	<Message name="TestOrder"  description="基础类">
 	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="交付数量" /> 
-	    <Field name="MyID" primitive_type="AccountID_Def"  description="ID" /> 
+	    <Field name="MyID" primitive_type="AccountID_Def"  description="ID" />
+		<Field name="OrderID" primitive_type="UINT64"  description="ID" />
+		<Field name="FundAccoutId" primitive_type="FIXARRAY" length="10"  description="fund account ID" />
 	</Message>
 	<Message name="BaseMessage" pktno="1001" description="基础类">
 	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="交付数量" /> 

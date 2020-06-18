@@ -61,42 +61,22 @@ private:
 	std::string description_;
 };
 
-class FieldInfoBase
+class FieldInfoBase :public TypeInfoBase
 {
 public:
-	FieldInfoBase(FieldType filed_type, const std::string& name, const std::string& primitive_type, const std::string& description)
+	FieldInfoBase(FieldType field_type, const std::string& name, const std::string& primitive_type, int32_t length, const std::string& description)
+		:field_type_(field_type), TypeInfoBase(name, primitive_type, length, description)
 	{
-		filed_type_ = filed_type;
-		name_ = name;
-		primitive_type_ = primitive_type;
-		description_ = description;
+
 	}
 
 	FieldType GetFiledType()
 	{
-		return filed_type_;
-	}
-
-	const std::string& GetName()
-	{
-		return name_;
-	}
-
-	const std::string& GetPrimitiveType()
-	{
-		return primitive_type_;
-	}
-
-	const std::string& GetDescription()
-	{
-		return description_;
+		return field_type_;
 	}
 
 private:
-	FieldType filed_type_;
-	std::string name_;
-	std::string primitive_type_;
-	std::string description_;
+	FieldType field_type_;
 };
 
 class MessageInfoBase
@@ -159,16 +139,13 @@ private:
 	std::vector<FieldInfoBase> v_field_;
 };
 
-class FieldInfoValue
+class FieldInfoValue:public TypeInfoBase
 {
 public:
-	FieldInfoValue(const std::string& name, const std::string& primitive_type, const std::string& value, const std::string& description)
+	FieldInfoValue(const std::string& value, const std::string& name, const std::string& primitive_type, uint32_t length, const std::string& description)
+		:value_(value), TypeInfoBase( name, primitive_type, length, description)
 	{
 
-		name_ = name;
-		primitive_type_ = primitive_type;
-		value_ = value;
-		description_ = description;
 	}
 
 	std::string GetValue()
@@ -176,52 +153,17 @@ public:
 		return value_;
 	}
 
-	const std::string& GetName()
-	{
-		return name_;
-	}
-
-	const std::string& GetPrimitiveType()
-	{
-		return primitive_type_;
-	}
-
-	const std::string& GetDescription()
-	{
-		return description_;
-	}
-
 private:
-	std::string name_;
-	std::string primitive_type_;
 	std::string value_;
-	std::string description_;
 };
 
-class ConstInfoBase
+class ConstInfoBase :public TypeInfoBase
 {
 public:
 	ConstInfoBase() {}
-	ConstInfoBase(const std::string& name, const std::string& primitive_type, const std::string& description)
+	ConstInfoBase(const std::string& name, const std::string& primitive_type, uint32_t length, const std::string& description)
+		:TypeInfoBase(name, primitive_type, length, description)
 	{
-		name_ = name;
-		primitive_type_ = primitive_type;
-		description_ = description;
-	}
-
-	const std::string& GetName()
-	{
-		return name_;
-	}
-	
-	const std::string& GetPrimitiveType()
-	{
-		return primitive_type_;
-	}
-
-	const std::string& GetDescription()
-	{
-		return description_;
 	}
 
 	void PushFiled(const FieldInfoValue& field)
@@ -245,9 +187,6 @@ public:
 		return v_field;
 	}
 private:
-	std::string name_;
-	std::string primitive_type_;
-	std::string description_;
 	std::vector<FieldInfoValue> v_field;
 };
 
@@ -267,7 +206,7 @@ namespace TypeRecognition
 		{"INT64",8},
 		{"UINT64",8},
 		{"FIXARRAY",-1},
-		{"STRING",-1}
+		{"STRING",std::numeric_limits<uint32_t>::max()}
 	};
 
 	static bool IsPrimitiveTypeValid(const std::string& type)

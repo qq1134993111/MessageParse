@@ -35,11 +35,11 @@ namespace {{NAMESPACE}}
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
-      {{ FIELD.F_PRIMITIVE_TYPE }} {{ FIELD.F_NAME }}; //{{ FIELD.F_DESCRIPTION }}
+      {{ RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH) }} {{ FIELD.F_NAME }}; //{{ FIELD.F_DESCRIPTION }}
     {% endif %}
     {# 循环信息注释 {{ loop.index1 }}，{{ loop.index }}, {{ loop.is_first }},{{ loop.is_last }}    #}
     {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
-      std::vector<{{ FIELD.F_PRIMITIVE_TYPE }}> {{ FIELD.F_NAME }}; //{{ FIELD.F_DESCRIPTION }}
+      std::vector<{{ RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH) }}> {{ FIELD.F_NAME }}; //{{ FIELD.F_DESCRIPTION }}
     {% endif %}
 ## endfor
     {% endif %}
