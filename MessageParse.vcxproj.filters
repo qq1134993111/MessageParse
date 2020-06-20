@@ -15,6 +15,9 @@
     <Filter Include="mp">
       <UniqueIdentifier>{386dec49-9cca-4e4a-989b-25e5196456c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GenMsg">
+      <UniqueIdentifier>{d6828ce7-dfd6-430c-aa4d-e0ef281cc4ad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileUtil.cpp">

@@ -108,37 +108,40 @@ namespace {{NAME}}
       uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
       ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
       if (ec != mp::ErrorCode::kSuccess) return ec;
-      {{ lower(FIELD.F_NAME) }}.resize();
-      for(auto& item : {{ FIELD.F_NAME }})
+      for(auto i=0; i<size_{{ lower(FIELD.F_NAME) }}; i++)
       {
           uint32_t item_size = 0;
           ec = decoder.Read(item_size);
           if (ec != mp::ErrorCode::kSuccess) return ec;
+          {{FIELD.F_PRIMITIVE_TYPE}} item;
           item.resize(item_size);
           ec = decoder.Read(item.data(), item.size());
           if (ec != mp::ErrorCode::kSuccess) return ec;
+          {{FIELD.F_NAME}}.push_back(item);
       }
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT8","UINT8","INT16","UINT16","INT32","UINT32","INT64","UINT64","FIXARRAY"] %}
       uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
       ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
       if (ec != mp::ErrorCode::kSuccess) return ec;
-      {{ FIELD.F_NAME }}.resize(size_{{ lower(FIELD.F_NAME) }});
-      for(auto& item : {{ FIELD.F_NAME }})
+      for(auto i=0; i<size_{{ lower(FIELD.F_NAME) }}; i++)
       {
-           ec = decoder.Read(item);
-           if (ec != mp::ErrorCode::kSuccess) return ec;
+          {{FIELD.F_PRIMITIVE_TYPE}} item;
+          ec = decoder.Read(item);
+          if (ec != mp::ErrorCode::kSuccess) return ec;
+          {{FIELD.F_NAME}}.push_back(item);
       }
       {% endif %}
       {% if not FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT8","UINT8","INT16","UINT16","INT32","UINT32","INT64","UINT64","FIXARRAY","STRING"]  %}
       uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
       ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
       if (ec != mp::ErrorCode::kSuccess) return ec;
-      {{ FIELD.F_NAME }}.resize(size_{{ lower(FIELD.F_NAME) }});
-      for(auto& item : {{ FIELD.F_NAME }})
+      for(auto i=0; i<size_{{ lower(FIELD.F_NAME) }}; i++)
       {
-           ec=item.Decode(decoder);
-           if(ec!=mp::ErrorCode::kSuccess) return ec;
+          {{FIELD.F_PRIMITIVE_TYPE}} item;
+          ec=item.Decode(decoder);
+          if(ec!=mp::ErrorCode::kSuccess) return ec;
+          {{FIELD.F_NAME}}.push_back(item);
       }
       {% endif %}
     {% endif %}
