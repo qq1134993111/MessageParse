@@ -8,7 +8,8 @@
 #include "boost/exception/all.hpp"
 #include "boost/filesystem.hpp"
 #include "inja/inja.hpp"
-
+#include "boost/algorithm/string.hpp"
+#include"FileUtil.h"
 #include<unordered_set>
 
 bool MessageParser::LoadXml(const std::string& file_path)
@@ -24,6 +25,8 @@ bool MessageParser::LoadXml(const std::string& file_path)
 
 		endian_ = (EndianType)root.get<int32_t>("File.<xmlattr>.Endian");
 
+		std::string str_namespace = root.get<std::string>("File.<xmlattr>.namespace");
+		boost::algorithm::split(v_namespace, str_namespace, boost::is_any_of("."), boost::token_compress_on);
 
 		//类型信息
 		for (BOOST_AUTO(pos, types_tree.begin()); pos != types_tree.end(); ++pos)
@@ -41,7 +44,16 @@ bool MessageParser::LoadXml(const std::string& file_path)
 			auto description = pos->second.get<std::string>("<xmlattr>.description");
 			auto len = pos->second.get_optional<int32_t>("<xmlattr>.length");
 
+			TypeInfoBase type_info(name, primitive_type, len.value_or(0), description);
 
+			//检测类型
+			if (!TypeRecognition::IsPrimitiveTypeValid(type_info.GetPrimitiveType()))
+			{
+				std::cout << fmt::format("type name {0} primitive_type {1} not valid.\n", type_info.GetName(), type_info.GetPrimitiveType());
+				return false;
+			}
+
+			//数组类型必须有长度
 			if (TypeRecognition::IsPrimitiveTypeFixArray(primitive_type))
 			{
 				if (!len)
@@ -66,14 +78,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 				len = 0;
 			}
 
-
-			TypeInfoBase type_info(name, primitive_type, len.value_or(0), description);
-			if (!TypeRecognition::IsPrimitiveTypeValid(type_info.GetPrimitiveType()))
-			{
-				std::cout << fmt::format("type name {0} primitive_type {1} not valid.\n", type_info.GetName(), type_info.GetPrimitiveType());
-				return false;
-			}
-
+			//名称不能重复
 			if (type_info_map_.count(type_info.GetName()))
 			{
 				std::cout << fmt::format("File.Types duplicate key ,{} has been defined.\n", type_info.GetName());
@@ -81,6 +86,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 			}
 
 			type_info_map_.insert(std::make_pair(type_info.GetName(), type_info));
+			v_type_info_.push_back(type_info);
 		}
 
 		//消息信息
@@ -103,6 +109,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 				}
 			}
 
+			//是否有消息名称重复
 			if (msg_name_struct_map_.count(msg_name))
 			{
 				std::cout << fmt::format("The message duplicate key,{} has been defined.\n", msg_name);
@@ -111,6 +118,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 
 			if (pktno)
 			{
+				//是否消息号重复
 				if (msg_pktno_struct_map_.count(pktno.value()))
 				{
 					std::cout << fmt::format("The message {} pktno duplicate key, {} has been defined.\n", msg_name, pktno.value());
@@ -120,6 +128,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 
 			MessageInfoBase msg_info(msg_name, pktno.value_or(0), inherit.value_or(""), description);
 
+			//遍历保存field
 			for (auto& v2 : v1.second)
 			{
 				if (v2.first == "<xmlattr>")
@@ -133,12 +142,14 @@ bool MessageParser::LoadXml(const std::string& file_path)
 
 				if (v2.first == "Field")
 				{
+					//无效的类型
 					if (!type_info_map_.count(primitive_type) && !TypeRecognition::IsPrimitiveTypeValid(primitive_type))
 					{
 						std::cout << fmt::format("The message {} field {} primitive_type {} cannot find.\n", msg_name, field_name, primitive_type);
 						return false;
 					}
 
+					//数组长度检验
 					if (TypeRecognition::IsPrimitiveTypeFixArray(primitive_type))
 					{
 						if (!len)
@@ -154,13 +165,21 @@ bool MessageParser::LoadXml(const std::string& file_path)
 							return false;
 						}
 					}
+					else if (TypeRecognition::IsPrimitiveTypeString(primitive_type))
+					{
+						len = std::numeric_limits<uint32_t>::max();
+					}
+					else
+					{
+						len = 0;
+					}
 
-					FieldInfoBase simple_info(FieldType::Primitive, field_name, primitive_type,len.value_or(0), description);
+					FieldInfoBase simple_info(FieldType::Primitive, field_name, primitive_type, len.value_or(0), description);
 					msg_info.PushFiled(simple_info);
 				}
 				else if (v2.first == "Sequence")
 				{
-					if (msg_name_struct_map_.count(primitive_type) || type_info_map_.count(primitive_type)|| TypeRecognition::IsPrimitiveTypeValid(primitive_type))
+					if (msg_name_struct_map_.count(primitive_type) || type_info_map_.count(primitive_type) || TypeRecognition::IsPrimitiveTypeValid(primitive_type))
 					{
 
 						if (TypeRecognition::IsPrimitiveTypeFixArray(primitive_type))
@@ -178,8 +197,16 @@ bool MessageParser::LoadXml(const std::string& file_path)
 								return false;
 							}
 						}
+						else if (TypeRecognition::IsPrimitiveTypeString(primitive_type))
+						{
+							len = std::numeric_limits<uint32_t>::max();
+						}
+						else
+						{
+							len = 0;
+						}
 
-						FieldInfoBase struct_info(FieldType::Sequence, field_name, primitive_type,len.value_or(0), description);
+						FieldInfoBase struct_info(FieldType::Sequence, field_name, primitive_type, len.value_or(0), description);
 						msg_info.PushFiled(struct_info);
 					}
 					else
@@ -202,6 +229,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 			{
 				msg_pktno_struct_map_[*pktno] = msg_info;
 			}
+			v_msg_struct_info_.push_back(msg_info);
 
 		}
 
@@ -217,23 +245,49 @@ bool MessageParser::LoadXml(const std::string& file_path)
 				std::string description = v1.second.get<std::string>("<xmlattr>.description");
 				auto len = v1.second.get_optional<int32_t>("<xmlattr>.length");
 
-				if (TypeRecognition::IsPrimitiveTypeFixArray(primitive_type))
-				{
-					if (!len)
-					{
-						//std::cout << "primitive_type length error:" << type_info.primitive_type << "\n";
-						std::cout << fmt::format("The Const {0} primitive_type {1} length not valid,must set value.", name, primitive_type);
-						return false;
-					}
+				//获取最原始的类型
+				std::string original_type = "";
+				int32_t original_len = 0;
 
-					if (len.value() <= 0)
+
+				auto it = type_info_map_.find(primitive_type);
+				if (it != type_info_map_.end())
+				{
+					original_type = it->second.GetPrimitiveType();
+					original_len = it->second.GetLength();
+				}
+				else if (TypeRecognition::IsPrimitiveTypeValid(primitive_type))
+				{
+					original_type = primitive_type;
+					if (TypeRecognition::IsPrimitiveTypeFixArray(primitive_type))
 					{
-						std::cout << fmt::format("The Const {0} primitive_type {1} length is {2},must >= 0",name, primitive_type, len.value());
-						return false;
+						if (!len)
+						{
+							//std::cout << "primitive_type length error:" << type_info.primitive_type << "\n";
+							std::cout << fmt::format("The Const {0} primitive_type {1} length not valid,must set value.", name, primitive_type);
+							return false;
+						}
+
+						if (len.value() <= 0)
+						{
+							std::cout << fmt::format("The Const {0} primitive_type {1} length is {2},must >= 0", name, primitive_type, len.value());
+							return false;
+						}
+						original_len = len.value();
+					}
+					else if (TypeRecognition::IsPrimitiveTypeString(original_type))
+					{
+						len = std::numeric_limits<uint32_t>::max();
 					}
 				}
+				else
+				{
+					std::cout << fmt::format("The const name {} primitive_type {} cannot find.\n", name, primitive_type);
+					return false;
+				}
 
-				ConstInfoBase const_info(name, primitive_type,len.value_or(0), description);
+
+				ConstInfoBase const_info(name, primitive_type, len.value_or(0), description);
 				for (auto& v2 : v1.second)
 				{
 					if (v2.first == "<xmlattr>")
@@ -243,8 +297,104 @@ bool MessageParser::LoadXml(const std::string& file_path)
 					std::string field_name = v2.second.get<std::string>("<xmlattr>.name");
 					std::string description = v2.second.get<std::string>("<xmlattr>.description");
 					std::string value = v2.second.get<std::string>("");
+					//判断值是否合法
 
-					FieldInfoValue field(value,field_name, primitive_type,len.value_or(0), description);
+					boost::algorithm::trim(value);
+
+					if (TypeRecognition::IsPrimitiveTypeInt(original_type))
+					{
+						bool b_valid = false;
+						if (original_type == "CHAR")
+						{
+							if (value.size() == 1)
+							{
+								b_valid = true;
+							}
+						}
+						else if (original_type == "BOOL")
+						{
+							if (value == "true" || value == "false")
+							{
+								b_valid = true;
+							}
+							else
+							{
+								try
+								{
+									auto v = std::stoll(value);
+									b_valid = true;
+								}
+								catch (const std::exception&)
+								{
+									b_valid = false;
+								}
+							}
+						}
+						else
+						{
+							try
+							{
+								auto v = std::stoll(value);
+
+								if (original_type == "INT8")
+								{
+									b_valid = (v >= std::numeric_limits<int8_t>::min() && v <= std::numeric_limits<int8_t>::max());
+								}
+								else if (original_type == "UCHAR" || original_type == "UINT8")
+								{
+									b_valid = (v >= std::numeric_limits<uint8_t>::min() && v <= std::numeric_limits<uint8_t>::max());
+								}
+								else if (original_type == "INT16")
+								{
+									b_valid = (v >= std::numeric_limits<int16_t>::min() && v <= std::numeric_limits<int16_t>::max());
+								}
+								else if (original_type == "UINT16")
+								{
+									b_valid = (v >= std::numeric_limits<uint16_t>::min() && v <= std::numeric_limits<uint16_t>::max());
+								}
+								else if (original_type == "INT32")
+								{
+									b_valid = (v >= std::numeric_limits<int32_t>::min() && v <= std::numeric_limits<int32_t>::max());
+								}
+								else if (original_type == "UINT32")
+								{
+									b_valid = (v >= std::numeric_limits<uint32_t>::min() && v <= std::numeric_limits<uint32_t>::max());
+								}
+								else if (original_type == "INT64")
+								{
+									b_valid = (v >= std::numeric_limits<int64_t>::min() && v <= std::numeric_limits<int64_t>::max());
+								}
+								else if (original_type == "UINT64")
+								{
+									b_valid = (v >= std::numeric_limits<uint64_t>::min() && v <= std::numeric_limits<uint64_t>::max());
+								}
+							}
+							catch (const std::exception&)
+							{
+								b_valid = false;
+							}
+						}
+
+						if (!b_valid)
+						{
+							std::cout << fmt::format("const name{} field{} primitive_type{} is not valid, value{}\n",
+								name, field_name, primitive_type, value);
+
+							return false;
+						}
+					}
+					else if (TypeRecognition::IsPrimitiveTypeFixArray(original_type))
+					{
+						if (value.size() > original_len)
+						{
+							std::cout << fmt::format("const name {} field {} primitive_type {} is not valid,value {} length {} > defined length {}\n",
+								name, field_name, primitive_type, value, value.size(), original_len);
+
+							return false;
+						}
+					}
+
+					FieldInfoValue field(value, field_name, primitive_type, len.value_or(0), description);
 
 					const_info.PushFiled(field);
 				}
@@ -256,6 +406,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
 				}
 
 				const_name_map_[name] = const_info;
+				v_const_info_.push_back(const_info);
 
 			}
 		}
@@ -325,7 +476,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 			for (auto& [key, value] : msg_name_struct_map_)
 			{
 				inja::json json;
-				json["NAMESPACE"] = "HAO";
+				json["NAMESPACE"] = v_namespace;
 				json["MSG_DESCRIPTION"] = value.GetDescription();
 				json["MSG_INHERIT"] = value.GetInherit();
 				json["MSG_PKT_NO"] = value.GetPktNo();
@@ -341,17 +492,31 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 					j_field["F_NAME"] = f.GetName();
 					j_field["F_PRIMITIVE_TYPE"] = f.GetPrimitiveType();
 					j_field["F_LENGTH"] = f.GetLength();
-					auto type_info = type_info_map_[f.GetPrimitiveType()];
-					j_field["F_TYPE_INFO"] =
+					auto it = type_info_map_.find(f.GetPrimitiveType());
+					if (it != type_info_map_.end())
 					{
-						{"T_NAME",type_info.GetName()},
-						{"T_PRIMITIVE_TYPE",type_info.GetPrimitiveType()},
-						{"T_LENGTH",type_info.GetLength()}
-					};
+						j_field["F_TYPE_INFO"] =
+						{
+							{"T_NAME",it->second.GetName()},
+							{"T_PRIMITIVE_TYPE",it->second.GetPrimitiveType()},
+							{"T_LENGTH",it->second.GetLength()}
+						};
+					}
+					else//field 中直接 FIXARRAY
+					{
+						j_field["F_TYPE_INFO"] =
+						{
+							{"T_NAME",f.GetPrimitiveType()},
+							{"T_PRIMITIVE_TYPE",f.GetPrimitiveType()},
+							{"T_LENGTH",f.GetLength()}
+						};
+					}
+
+
 					json["FIELDS"].push_back(j_field);
 				}
 
-				std::cout << fmt::format("write {}.h\n",key);
+				std::cout << fmt::format("write {}.h\n", key);
 				env.write(temp_msg_h, json, key + ".h");
 				std::cout << fmt::format("write {}.cpp\n", key);
 				env.write(temp_msg_cpp, json, key + ".cpp");
@@ -364,7 +529,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 			std::cout << fmt::format("parse TEMPLATE_TYPES_H\n");
 			inja::Template temp_types_h = env.parse_template("TEMPLATE_TYPES_H.txt");
 			inja::json json_types;
-			json_types["NAMESPACE"] = "HAO";
+			json_types["NAMESPACE"] = v_namespace;
 			json_types["TYPES"].push_back({ {"T_NAME","CHAR"},{"T_PRIMITIVE_TYPE","CHAR"},{"T_LENGTH",0},{"T_DESCRIPTION","CHAR"} });
 			json_types["TYPES"].push_back({ {"T_NAME","UCHAR"},{"T_PRIMITIVE_TYPE","UCHAR"},{"T_LENGTH",0},{"T_DESCRIPTION","UNSIGNED CHAR"} });
 			json_types["TYPES"].push_back({ {"T_NAME","BOOL"},{"T_PRIMITIVE_TYPE","BOOL"},{"T_LENGTH",0},{"T_DESCRIPTION","BOOL"} });
@@ -412,7 +577,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 			std::cout << fmt::format("parse TEMPLATE_CONSTANTS_CPP\n");
 			inja::Template temp_constants_cpp = env.parse_template("TEMPLATE_CONSTANTS_CPP.txt");
 			inja::json json_constants;
-			json_constants["NAMESPACE"] = "HAO";
+			json_constants["NAMESPACE"] = v_namespace;
 
 			for (auto& [key, value] : const_name_map_)
 			{
@@ -431,15 +596,36 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 					j_field["F_NAME"] = f.GetName();
 					j_field["F_PRIMITIVE_TYPE"] = f.GetPrimitiveType();
 					j_field["F_LENGTH"] = f.GetLength();
-					auto type_info = type_info_map_[f.GetPrimitiveType()];
-					j_field["F_TYPE_INFO"] = { {"T_NAME",type_info.GetName()},{"T_PRIMITIVE_TYPE",type_info.GetPrimitiveType()},{"T_LENGTH",type_info.GetLength()} };
+
+					auto it = type_info_map_.find(f.GetPrimitiveType());
+					if (it != type_info_map_.end())
+					{
+						j_field["F_TYPE_INFO"] =
+						{
+							{"T_NAME",it->second.GetName()},
+							{"T_PRIMITIVE_TYPE",it->second.GetPrimitiveType()},
+							{"T_LENGTH",it->second.GetLength()}
+						};
+					}
+					else//field 中直接 FIXARRAY
+					{
+						j_field["F_TYPE_INFO"] =
+						{
+							{"T_NAME", value.GetPrimitiveType() },
+							{"T_PRIMITIVE_TYPE", value.GetPrimitiveType()},
+							{"T_LENGTH",value.GetLength()}
+						};
+					}
+
 					json["FIELDS"].push_back(j_field);
 				}
-				std::cout << json << "\n";
+				//std::cout << json << "\n";
 				json_constants["CONSTANTS"].push_back(json);
 			}
 
-			std::cout << json_constants << "\n";
+			//std::cout << json_constants << "\n";
+			//std::string line = json_constants.dump();
+			//FileUtil::WriteFile("relsut", std::vector<std::string>{line});
 
 			std::cout << fmt::format("write Constants.h\n");
 			env.write(temp_constants_h, json_constants, "Constants.h");

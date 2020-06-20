@@ -5,8 +5,13 @@
 #include<array>
 #include<stdint.h>
 
-namespace {{NAMESPACE}}
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+namespace {{NAME}}
 {
+## endfor
+{% endif %}
+
 ## for TYPE in TYPES
     {#{TYPE}#}
     {% if TYPE.T_PRIMITIVE_TYPE in ["INT8","UINT8","INT16","UINT16","INT32","UINT32","INT64","UINT64"] %}
@@ -29,4 +34,8 @@ namespace {{NAMESPACE}}
     {% endif %}
 ## endfor
 
-}
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+} //end of namespace {{NAME}}
+## endfor
+{% endif %}

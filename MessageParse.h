@@ -259,10 +259,17 @@ public:
 	bool Write(const std::string& template_path,const std::string& write_path);
 
 private:
+	std::vector<std::string> v_namespace;
 	EndianType endian_;
+	//保存类型信息
 	std::unordered_map<std::string, TypeInfoBase> type_info_map_;
+	std::vector<TypeInfoBase> v_type_info_;
+	//保存消息信息
 	std::unordered_map<std::string, MessageInfoBase> msg_name_struct_map_;
 	std::unordered_map<uint32_t, MessageInfoBase> msg_pktno_struct_map_;
+	std::vector<MessageInfoBase> v_msg_struct_info_;
+	//保存常量信息
 	std::unordered_map<std::string, ConstInfoBase> const_name_map_;
+	std::vector<ConstInfoBase> v_const_info_;
 	
 };

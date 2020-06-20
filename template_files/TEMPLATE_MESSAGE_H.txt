@@ -3,21 +3,26 @@
 
 #include<vector>
 #include"Types.h"
-{% if MSG_INHERIT=="" %}
+{% if MSG_INHERIT == "" %}
 #include"MessageBase.h"
 {% endif %}
-{% if MSG_INHERIT!="" %}
+{% if MSG_INHERIT != "" %}
 #include"{{MSG_INHERIT}}.h"
 {% endif %}
 ## for FIELD in FIELDS
     {#{ FIELD }#}
-    {% if FIELD.F_FILED_TYPE==1 and FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="" %}
+    {% if FIELD.F_FILED_TYPE == 1 and not FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT16","UINT16","INT8","UINT8","INT32","UINT32","INT64","UINT64","STRING","FIXARRAY"] %}
 #include"{{ FIELD.F_PRIMITIVE_TYPE }}.h"
     {% endif %}
 ## endfor
 
-namespace {{NAMESPACE}}
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+namespace {{NAME}}
 {
+## endfor
+{% endif %}
+
   //{{MSG_NAME}} {{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
   class {{MSG_NAME}} : public {% if MSG_INHERIT!="" %} {{MSG_INHERIT}} 
   {% endif %} {% if  MSG_INHERIT=="" %} mp::MessageBase 
@@ -43,6 +48,10 @@ namespace {{NAMESPACE}}
     {% endif %}
 ## endfor
     {% endif %}
-  }; //end of {{MSG_NAME}}
+  }; //end of class {{MSG_NAME}}
 
-} //end of {{NAMESPACE}}
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+} //end of namespace {{NAME}}
+## endfor
+{% endif %}

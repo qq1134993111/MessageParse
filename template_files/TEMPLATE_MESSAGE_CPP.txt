@@ -5,8 +5,13 @@
 
 #include"{{MSG_NAME}}.h"
 
-namespace {{NAMESPACE}}
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+namespace {{NAME}}
 {
+## endfor
+{% endif %}
+
   //{{MSG_NAME}} {{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
   void {{MSG_NAME}}::FillDefaultValue()
   {
@@ -35,7 +40,7 @@ namespace {{NAMESPACE}}
     {% endif %}
 ## endfor
     {% endif %}
-  } //end FillDefaultValue
+  } //end {{MSG_NAME}} FillDefaultValue
 
   mp::ErrorCode {{MSG_NAME}}::Decode(mp::MessageDecoder& decoder)
   {
@@ -98,7 +103,7 @@ namespace {{NAMESPACE}}
 ## endfor
      {% endif %}
       return ec;
-  } //end of Decode
+  } //end of {{MSG_NAME}} Decode
    
   mp::ErrorCode {{MSG_NAME}}::Encode(mp::MessageEncoder& encoder)
   {
@@ -150,7 +155,7 @@ namespace {{NAMESPACE}}
 ## endfor
     {% endif %}
       return ec;
-  }
+  } //end of {{MSG_NAME}}
    
   void {{MSG_NAME}}::Dump(std::ostream& ostream) 
   {
@@ -158,26 +163,26 @@ namespace {{NAMESPACE}}
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {# 注释调试 {{FIELD}} #}
-    {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
-      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FIXARRAY"  %}
-      ostream << mp::ToStringTrim({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
+    {% if FIELD.F_FILED_TYPE == 0 %}  {# 基本字段 #}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE == "FIXARRAY" %}
+      ostream << "{{FIELD.F_NAME}}:" <<mp::ToStringTrim({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
       {% endif %}
-      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="FIXARRAY" %}
-      ostream << "{{ FIELD.F_NAME }}"; //{{ FIELD.F_DESCRIPTION }}
+      {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE != "FIXARRAY" %}
+      ostream << "{{ FIELD.F_NAME }}:" << {{ FIELD.F_NAME }}; //{{ FIELD.F_DESCRIPTION }}
       {% endif %}
       {%if not loop.is_last  %}
       ostream << "|"; 
       {% endif %}
 	{% endif %}
     {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
-      ostream << "{{ FIELD.F_NAME }}" << " size:" << {{ FIELD.F_NAME }}.size() << "[" ;
+      ostream << "{{ FIELD.F_NAME }}" << " size: " << {{ FIELD.F_NAME }}.size() << "[" ;
       for(auto& item : {{ FIELD.F_NAME }}) //{{ FIELD.F_DESCRIPTION }}
       {
           {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FIXARRAY"  %}
-          ostream << mp::ToStringTrim(item) << ","; 
+          ostream << "{{FIELD.F_NAME}}:" << mp::ToStringTrim(item) << ","; 
           {% endif %}
           {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT16","UINT16","INT8","UINT8","INT32","UINT32","INT64","UINT64","STRING"] %}
-          ostream << item << ",";
+          ostream << "{{FIELD.F_NAME}}:" << item << ",";
           {% endif %}
           {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE==""  %}
           item.Dump(ostream);
@@ -191,6 +196,10 @@ namespace {{NAMESPACE}}
     {% endif %}
 ## endfor
     {% endif %}
-  } //end of Dump
+  } //end of {{MSG_NAME}} Dump
 
-}//end of {{NAMESPACE}}
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+} //end of namespace {{NAME}}
+## endfor
+{% endif %}

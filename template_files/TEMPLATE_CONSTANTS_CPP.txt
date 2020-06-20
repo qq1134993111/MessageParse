@@ -3,8 +3,13 @@
 
 #include "Constants.h"
 
-namespace {{NAMESPACE}}
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+namespace {{NAME}}
 {
+## endfor
+{% endif %}
+
 ## for CONSTANT in CONSTANTS
   {#{CONSTANT}#}
   //{{CONSTANT.CONST_NAME}}  {{CONSTANT.CONST_DESCRIPTION}}
@@ -27,4 +32,8 @@ namespace {{NAMESPACE}}
 
 ## endfor
 
-}
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+} //end of namespace {{NAME}}
+## endfor
+{% endif %}

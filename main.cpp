@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 	if (!parser.LoadXml(source_file))
 	{
 		std::cout << "load error\n";
+		return false;
 	}
 
 	parser.Write(tmp_path,boost::filesystem::current_path().string()+"\\GenMsg");

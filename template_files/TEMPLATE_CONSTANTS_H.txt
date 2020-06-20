@@ -4,8 +4,13 @@
 
 #include"ArrayUtil.h"
 
-namespace {{NAMESPACE}}
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+namespace {{NAME}}
 {
+## endfor
+{% endif %}
+
 ## for CONSTANT in CONSTANTS
   {#{CONSTANT}#}
   class {{CONSTANT.CONST_NAME}}  //{{CONSTANT.CONST_DESCRIPTION}}
@@ -14,7 +19,7 @@ namespace {{NAMESPACE}}
       {#{CONSTANT}#}
       bool IsValid(const {{RevisedType(CONSTANT.CONST_PRIMITIVE_TYPE,CONSTANT.CONST_LENGTH)}}& value);
 ## for FIELD in CONSTANT.FIELDS
-      {#{{FIELD}}#}
+      {#{FIELD}#}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FIXARRAY" %}
       inline static {{RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH)}} k{{FIELD.F_NAME}} = mp::ToArray<{{FIELD.F_TYPE_INFO.T_LENGTH}}>("{{FIELD.F_VALUE}}"); //{{FIELD.F_DESCRIPTION}}
       {% endif %}
@@ -26,8 +31,12 @@ namespace {{NAMESPACE}}
       {% endif %}
 ## endfor
 
-  }; //end of {{CONSTANT.CONST_NAME}} 
+  }; //end of class {{CONSTANT.CONST_NAME}} 
 
 ## endfor
 
-}//end of {{NAMESPACE}}
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+} //end of namespace {{NAME}}
+## endfor
+{% endif %}

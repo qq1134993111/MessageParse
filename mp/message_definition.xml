@@ -1,6 +1,6 @@
 
 
-<File namespace="hao" version="0.1" Endian="0" description="test">
+<File namespace="HAO.CODE" version="0.1" Endian="0" description="test">
 <Types>
 	<Type name="Qty_Def" primitive_type="INT64" description="最低成交数量" />
 	<Type name="AccountID_Def" primitive_type="FIXARRAY" length="10" description="账户id" />
@@ -8,6 +8,13 @@
 	<Type name="Currency_Def" primitive_type="FIXARRAY" length="5" description="币种" />
 </Types>
 <Constants>
+	<Const name="MyMode" primitive_type="FIXARRAY" length="9" description="常量">
+		<value name="Mode1"  description="模式1">MODE1</value>
+		<value name="Mode2"  description="模式2">MODE2</value>
+		<value name="Mode3"  description="模式3">MODE3</value>
+		<value name="Mode4"  description="模式4">MODE4</value>
+	</Const>
+	
 	<Const name="MyConstType" primitive_type="INT64" description="常量">
 		<value name="all"  description="全部">10</value>
 	</Const>
@@ -19,6 +26,10 @@
 	
 </Constants>
 <Messages>
+	<Message name="Header"  description="消息头部">
+		<Field name="message_type" primitive_type="UINT32"  description="消息类型" />
+		<Field name="body_length" primitive_type="UINT32"  description="消息体长度" />
+	</Message>
 	<Message name="TestOrder"  description="基础类">
 	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="交付数量" /> 
 	    <Field name="MyID" primitive_type="AccountID_Def"  description="ID" />
