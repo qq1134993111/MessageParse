@@ -112,7 +112,7 @@ namespace {{NAME}}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE==0 %}  {# »ù±¾×Ö¶Î #}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING"  %}
-      ec = encoder.Write({{ FIELD.F_NAME }}.size()); //{{ FIELD.F_DESCRIPTION }}
+      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size())); //{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       ec = encoder.Write({{ FIELD.F_NAME }}.data(), {{ FIELD.F_NAME }}.size());
       {% endif %}
@@ -123,18 +123,18 @@ namespace {{NAME}}
     {% endif %}
     {% if FIELD.F_FILED_TYPE==1 %} {# ÐòÁÐ #}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING" %}
-      ec = encoder.Write({{ FIELD.F_NAME }}.size()); //{{ FIELD.F_DESCRIPTION }}
+      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size())); //{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       for(auto& item : {{ FIELD.F_NAME }})
       {
-          ec = encode.Encode(item.size());
+          ec = encode.Encode(static_cast<uint32_t>(item.size()));
           if (ec != mp::ErrorCode::kSuccess) return ec;
           ec = encode.Encode(item.data(), item.size());
           if (ec != mp::ErrorCode::kSuccess) return ec;
        }
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT16","UINT16","INT8","UINT8","INT32","UINT32","INT64","UINT64","FIXARRAY"] %}
-      ec = encoder.Write({{ FIELD.F_NAME }}.size()); //{{ FIELD.F_DESCRIPTION }}
+      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size())); //{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       for(auto& item : {{ FIELD.F_NAME }})
       {
@@ -143,7 +143,7 @@ namespace {{NAME}}
       }
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE==""  %}
-      ec = encoder.Write({{ FIELD.F_NAME }}.size());//{{ FIELD.F_DESCRIPTION }}
+      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size()));//{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       for(auto& item : {{ FIELD.F_NAME }})
       {
