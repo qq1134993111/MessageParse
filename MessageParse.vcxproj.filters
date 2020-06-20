@@ -9,11 +9,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="GenMsg">
-      <UniqueIdentifier>{87860cce-2374-4341-8db7-ca5603dae1d5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="template_files">
       <UniqueIdentifier>{1877ea66-f94c-40d1-b1c0-b85edd9ad17f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mp">
+      <UniqueIdentifier>{386dec49-9cca-4e4a-989b-25e5196456c2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -26,9 +26,6 @@
     <ClCompile Include="MessageParse.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="mp\message_definition.xml" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="template_files\TEMPLATE_CONSTANTS_CPP.txt">
@@ -48,16 +45,31 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mp\ArrayUtil.h" />
-    <ClInclude Include="mp\ErrorCode.h" />
-    <ClInclude Include="mp\MessageBase.h" />
-    <ClInclude Include="mp\MessageDecoder.h" />
-    <ClInclude Include="mp\MessageEncoder.h" />
     <ClInclude Include="MessageParse.h">
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="FileUtil.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="mp\ArrayUtil.h">
+      <Filter>mp</Filter>
+    </ClInclude>
+    <ClInclude Include="mp\ErrorCode.h">
+      <Filter>mp</Filter>
+    </ClInclude>
+    <ClInclude Include="mp\MessageBase.h">
+      <Filter>mp</Filter>
+    </ClInclude>
+    <ClInclude Include="mp\MessageDecoder.h">
+      <Filter>mp</Filter>
+    </ClInclude>
+    <ClInclude Include="mp\MessageEncoder.h">
+      <Filter>mp</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="mp\message_definition.xml">
+      <Filter>mp</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

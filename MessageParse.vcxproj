@@ -92,6 +92,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>.\include;.\mp</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,6 +109,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>.\include;.\mp</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -126,6 +128,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>.\include;.\mp</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,6 +149,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>.\include;.\mp</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,9 +164,6 @@
     <ClCompile Include="MessageParse.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="mp\message_definition.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="template_files\TEMPLATE_CONSTANTS_CPP.txt" />
     <Text Include="template_files\TEMPLATE_CONSTANTS_H.txt" />
     <Text Include="template_files\TEMPLATE_MESSAGE_CPP.txt" />
@@ -173,10 +174,13 @@
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="MessageParse.h" />
     <ClInclude Include="mp\ArrayUtil.h" />
-    <ClInclude Include="mp\MessageDecoder.h" />
-    <ClInclude Include="mp\MessageEncoder.h" />
     <ClInclude Include="mp\ErrorCode.h" />
     <ClInclude Include="mp\MessageBase.h" />
+    <ClInclude Include="mp\MessageDecoder.h" />
+    <ClInclude Include="mp\MessageEncoder.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="mp\message_definition.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

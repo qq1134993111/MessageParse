@@ -14,7 +14,6 @@
 
 int main(int argc, char** argv)
 {
-
 	std::string  source_file;
 	std::string  tmp_path;
 	boost::program_options::options_description opts(" options");

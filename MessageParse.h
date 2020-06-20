@@ -27,7 +27,7 @@ class TypeInfoBase
 {
 public:
 	TypeInfoBase() {}
-	TypeInfoBase(const std::string& name, const std::string& primitive_type, uint32_t length, const std::string& description)
+	TypeInfoBase(const std::string& name, const std::string& primitive_type, int32_t length, const std::string& description)
 	{
 		name_ = name;
 		primitive_type_ = primitive_type;
@@ -161,7 +161,7 @@ class ConstInfoBase :public TypeInfoBase
 {
 public:
 	ConstInfoBase() {}
-	ConstInfoBase(const std::string& name, const std::string& primitive_type, uint32_t length, const std::string& description)
+	ConstInfoBase(const std::string& name, const std::string& primitive_type, int32_t length, const std::string& description)
 		:TypeInfoBase(name, primitive_type, length, description)
 	{
 	}
@@ -205,8 +205,8 @@ namespace TypeRecognition
 		{"UINT32",4},
 		{"INT64",8},
 		{"UINT64",8},
-		{"FIXARRAY",-1},
-		{"STRING",std::numeric_limits<uint32_t>::max()}
+		{"FIXARRAY",std::numeric_limits<int32_t>::min()},
+		{"STRING",std::numeric_limits<int32_t>::max()}
 	};
 
 	static bool IsPrimitiveTypeValid(const std::string& type)
@@ -217,6 +217,11 @@ namespace TypeRecognition
 	static bool IsPrimitiveTypeInt(const std::string& type)
 	{
 		return  type.compare("STRING") != 0 && type.compare("FIXARRAY") != 0;
+	}
+
+	static int32_t GetPrimitiveTypeIntSize(const std::string& type)
+	{
+		return  PrimitiveTypeMap[type];
 	}
 
 	static bool IsPrimitiveTypeString(const std::string& type)
@@ -239,17 +244,18 @@ public:
 		type_info_map_ =
 		{
 			//基本类型
-			{"CHAR",{"CHAR","CHAR",0,""}},
-			{"UCHAR",{"UCHAR","UCHAR",0,""}},
-			{"BOOL",{"BOOL","BOOL",0,""}},
-			{"INT8",{"INT8","INT8",0,""}},
-			{"UINT8",{"UINT8","UINT8",0,""}},
-			{"INT16",{"INT16","INT16",0,""}},
-			{"UINT16",{"UINT16","UINT16",0,""}},
-			{"INT32",{"INT32","INT32",0,""}},
-			{"INT64",{"INT64","INT64",0,""}},
-			{"UINT64",{"UINT64","UINT64",0,""}},
-			{"STRING",{"STRING","STRING",std::numeric_limits<uint32_t>::max(),""}}
+			{"CHAR",{"CHAR","CHAR",1,""}},
+			{"UCHAR",{"UCHAR","UCHAR",1,""}},
+			{"BOOL",{"BOOL","BOOL",1,""}},
+			{"INT8",{"INT8","INT8",1,""}},
+			{"UINT8",{"UINT8","UINT8",1,""}},
+			{"INT16",{"INT16","INT16",2,""}},
+			{"UINT16",{"UINT16","UINT16",2,""}},
+			{"INT32",{"INT32","INT32",4,""}},
+			{"UINT32",{"UINT32","UINT32",4,""}},
+			{"INT64",{"INT64","INT64",8,""}},
+			{"UINT64",{"UINT64","UINT64",8,""}},
+			{"STRING",{"STRING","STRING",std::numeric_limits<int32_t>::max(),""}}
 		};
 	}
 	virtual ~MessageParser() {}

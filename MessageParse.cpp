@@ -71,11 +71,11 @@ bool MessageParser::LoadXml(const std::string& file_path)
 			}
 			else if (TypeRecognition::IsPrimitiveTypeString(primitive_type))
 			{
-				len = std::numeric_limits<uint32_t>::max();
+				len = std::numeric_limits<int32_t>::max();
 			}
 			else
 			{
-				len = 0;
+				len = TypeRecognition::GetPrimitiveTypeIntSize(primitive_type);
 			}
 
 			//名称不能重复
@@ -167,11 +167,11 @@ bool MessageParser::LoadXml(const std::string& file_path)
 					}
 					else if (TypeRecognition::IsPrimitiveTypeString(primitive_type))
 					{
-						len = std::numeric_limits<uint32_t>::max();
+						len = std::numeric_limits<int32_t>::max();
 					}
 					else
 					{
-						len = 0;
+						len = TypeRecognition::GetPrimitiveTypeIntSize(primitive_type);
 					}
 
 					FieldInfoBase simple_info(FieldType::Primitive, field_name, primitive_type, len.value_or(0), description);
@@ -199,11 +199,11 @@ bool MessageParser::LoadXml(const std::string& file_path)
 						}
 						else if (TypeRecognition::IsPrimitiveTypeString(primitive_type))
 						{
-							len = std::numeric_limits<uint32_t>::max();
+							len = std::numeric_limits<int32_t>::max();
 						}
 						else
 						{
-							len = 0;
+							len = TypeRecognition::GetPrimitiveTypeIntSize(primitive_type);
 						}
 
 						FieldInfoBase struct_info(FieldType::Sequence, field_name, primitive_type, len.value_or(0), description);
@@ -277,7 +277,11 @@ bool MessageParser::LoadXml(const std::string& file_path)
 					}
 					else if (TypeRecognition::IsPrimitiveTypeString(original_type))
 					{
-						len = std::numeric_limits<uint32_t>::max();
+						len = std::numeric_limits<int32_t>::max();
+					}
+					else
+					{
+						len= TypeRecognition::GetPrimitiveTypeIntSize(primitive_type);
 					}
 				}
 				else
@@ -334,38 +338,46 @@ bool MessageParser::LoadXml(const std::string& file_path)
 						{
 							try
 							{
-								auto v = std::stoll(value);
+								
 
 								if (original_type == "INT8")
 								{
+									auto v = std::stoll(value);
 									b_valid = (v >= std::numeric_limits<int8_t>::min() && v <= std::numeric_limits<int8_t>::max());
 								}
 								else if (original_type == "UCHAR" || original_type == "UINT8")
 								{
+									auto v = std::stoull(value);
 									b_valid = (v >= std::numeric_limits<uint8_t>::min() && v <= std::numeric_limits<uint8_t>::max());
 								}
 								else if (original_type == "INT16")
 								{
+									auto v = std::stoll(value);
 									b_valid = (v >= std::numeric_limits<int16_t>::min() && v <= std::numeric_limits<int16_t>::max());
 								}
 								else if (original_type == "UINT16")
 								{
+									auto v = std::stoull(value);
 									b_valid = (v >= std::numeric_limits<uint16_t>::min() && v <= std::numeric_limits<uint16_t>::max());
 								}
 								else if (original_type == "INT32")
 								{
+									auto v = std::stoll(value);
 									b_valid = (v >= std::numeric_limits<int32_t>::min() && v <= std::numeric_limits<int32_t>::max());
 								}
 								else if (original_type == "UINT32")
 								{
+									auto v = std::stoull(value);
 									b_valid = (v >= std::numeric_limits<uint32_t>::min() && v <= std::numeric_limits<uint32_t>::max());
 								}
 								else if (original_type == "INT64")
 								{
+									auto v = std::stoll(value);
 									b_valid = (v >= std::numeric_limits<int64_t>::min() && v <= std::numeric_limits<int64_t>::max());
 								}
 								else if (original_type == "UINT64")
 								{
+									auto v = std::stoull(value);
 									b_valid = (v >= std::numeric_limits<uint64_t>::min() && v <= std::numeric_limits<uint64_t>::max());
 								}
 							}
@@ -495,12 +507,25 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 					auto it = type_info_map_.find(f.GetPrimitiveType());
 					if (it != type_info_map_.end())
 					{
-						j_field["F_TYPE_INFO"] =
+						if (TypeRecognition::IsPrimitiveTypeInt(it->second.GetPrimitiveType()))
 						{
-							{"T_NAME",it->second.GetName()},
-							{"T_PRIMITIVE_TYPE",it->second.GetPrimitiveType()},
-							{"T_LENGTH",it->second.GetLength()}
-						};
+							j_field["F_TYPE_INFO"] =
+							{
+								{"T_NAME",type_info_map_[it->second.GetPrimitiveType()].GetName()},
+								{"T_PRIMITIVE_TYPE",type_info_map_[it->second.GetPrimitiveType()].GetPrimitiveType()},
+								{"T_LENGTH",type_info_map_[it->second.GetPrimitiveType()].GetLength()}
+							};
+
+						}
+						else//string fixarray
+						{
+							j_field["F_TYPE_INFO"] =
+							{
+								{"T_NAME",it->second.GetName()},
+								{"T_PRIMITIVE_TYPE",it->second.GetPrimitiveType()},
+								{"T_LENGTH",it->second.GetLength()}
+							};
+						}
 					}
 					else//field 中直接 FIXARRAY
 					{
@@ -530,18 +555,18 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 			inja::Template temp_types_h = env.parse_template("TEMPLATE_TYPES_H.txt");
 			inja::json json_types;
 			json_types["NAMESPACE"] = v_namespace;
-			json_types["TYPES"].push_back({ {"T_NAME","CHAR"},{"T_PRIMITIVE_TYPE","CHAR"},{"T_LENGTH",0},{"T_DESCRIPTION","CHAR"} });
-			json_types["TYPES"].push_back({ {"T_NAME","UCHAR"},{"T_PRIMITIVE_TYPE","UCHAR"},{"T_LENGTH",0},{"T_DESCRIPTION","UNSIGNED CHAR"} });
-			json_types["TYPES"].push_back({ {"T_NAME","BOOL"},{"T_PRIMITIVE_TYPE","BOOL"},{"T_LENGTH",0},{"T_DESCRIPTION","BOOL"} });
-			json_types["TYPES"].push_back({ {"T_NAME","INT8"},{"T_PRIMITIVE_TYPE","INT8"},{"T_LENGTH",0},{"T_DESCRIPTION","INT8_T"} });
-			json_types["TYPES"].push_back({ {"T_NAME","UINT8"},{"T_PRIMITIVE_TYPE","UINT8"},{"T_LENGTH",0},{"T_DESCRIPTION","UINT8_T"} });
-			json_types["TYPES"].push_back({ {"T_NAME","INT16"},{"T_PRIMITIVE_TYPE","INT16"},{"T_LENGTH",0},{"T_DESCRIPTION","INT8_T"} });
-			json_types["TYPES"].push_back({ {"T_NAME","UINT16"},{"T_PRIMITIVE_TYPE","UINT16"},{"T_LENGTH",0},{"T_DESCRIPTION","UINT16_T"} });
-			json_types["TYPES"].push_back({ {"T_NAME","INT32"},{"T_PRIMITIVE_TYPE","INT32"},{"T_LENGTH",0},{"T_DESCRIPTION","INT32_T"} });
-			json_types["TYPES"].push_back({ {"T_NAME","UINT32"},{"T_PRIMITIVE_TYPE","UINT32"},{"T_LENGTH",0},{"T_DESCRIPTION","UINT32_T"} });
-			json_types["TYPES"].push_back({ {"T_NAME","INT64"},{"T_PRIMITIVE_TYPE","INT64"},{"T_LENGTH",0},{"T_DESCRIPTION","INT64_T"} });
-			json_types["TYPES"].push_back({ {"T_NAME","UINT64"},{"T_PRIMITIVE_TYPE","UINT64"},{"T_LENGTH",0},{"T_DESCRIPTION","UINT64_T"} });
-			json_types["TYPES"].push_back({ {"T_NAME","STRING"},{"T_PRIMITIVE_TYPE","STRING"},{"T_LENGTH",std::numeric_limits<uint32_t>::max()},{"T_DESCRIPTION","STD::STRING"} });
+			json_types["TYPES"].push_back({ {"T_NAME","CHAR"},{"T_PRIMITIVE_TYPE","CHAR"},{"T_LENGTH",1},{"T_DESCRIPTION","CHAR"} });
+			json_types["TYPES"].push_back({ {"T_NAME","UCHAR"},{"T_PRIMITIVE_TYPE","UCHAR"},{"T_LENGTH",1},{"T_DESCRIPTION","UNSIGNED CHAR"} });
+			json_types["TYPES"].push_back({ {"T_NAME","BOOL"},{"T_PRIMITIVE_TYPE","BOOL"},{"T_LENGTH",1},{"T_DESCRIPTION","BOOL"} });
+			json_types["TYPES"].push_back({ {"T_NAME","INT8"},{"T_PRIMITIVE_TYPE","INT8"},{"T_LENGTH",1},{"T_DESCRIPTION","INT8_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","UINT8"},{"T_PRIMITIVE_TYPE","UINT8"},{"T_LENGTH",1},{"T_DESCRIPTION","UINT8_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","INT16"},{"T_PRIMITIVE_TYPE","INT16"},{"T_LENGTH",2},{"T_DESCRIPTION","INT8_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","UINT16"},{"T_PRIMITIVE_TYPE","UINT16"},{"T_LENGTH",2},{"T_DESCRIPTION","UINT16_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","INT32"},{"T_PRIMITIVE_TYPE","INT32"},{"T_LENGTH",4},{"T_DESCRIPTION","INT32_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","UINT32"},{"T_PRIMITIVE_TYPE","UINT32"},{"T_LENGTH",4},{"T_DESCRIPTION","UINT32_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","INT64"},{"T_PRIMITIVE_TYPE","INT64"},{"T_LENGTH",8},{"T_DESCRIPTION","INT64_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","UINT64"},{"T_PRIMITIVE_TYPE","UINT64"},{"T_LENGTH",8},{"T_DESCRIPTION","UINT64_T"} });
+			json_types["TYPES"].push_back({ {"T_NAME","STRING"},{"T_PRIMITIVE_TYPE","STRING"},{"T_LENGTH",std::numeric_limits<int32_t>::max()},{"T_DESCRIPTION","STD::STRING"} });
 
 			for (auto& [key, value] : type_info_map_)
 			{

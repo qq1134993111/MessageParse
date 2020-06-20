@@ -31,8 +31,9 @@ namespace {{NAME}}
     public:
       {{MSG_NAME}}(){}
       ~{{MSG_NAME}}(){}
-      virtual uint32_t GetMsgType() override { return {{MSG_PKT_NO}};} //{{MSG_DESCRIPTION}}
       virtual void FillDefaultValue() override;
+      virtual uint32_t GetMsgType() override { return {{MSG_PKT_NO}};} //{{MSG_DESCRIPTION}}
+      virtual uint32_t GetMsgSize() override;
       virtual mp::ErrorCode Decode(mp::MessageDecoder& decoder) override;
       virtual mp::ErrorCode Encode(mp::MessageEncoder& encoder) override;
       virtual void Dump(std::ostream& ostream) override;
