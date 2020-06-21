@@ -83,7 +83,7 @@ class MessageInfoBase
 {
 public:
     MessageInfoBase() {}
-    MessageInfoBase(const std::string& name, uint32_t pktno, const std::string& inherit, const std::string& description)
+    MessageInfoBase(const std::string& name, int32_t pktno, const std::string& inherit, const std::string& description)
     {
         name_ = name;
         pktno_ = pktno;
@@ -96,7 +96,7 @@ public:
         return name_;
     }
 
-    uint32_t GetPktNo()
+    int32_t GetPktNo()
     {
         return pktno_;
     }
@@ -133,7 +133,7 @@ public:
     }
 private:
     std::string name_;
-    uint32_t pktno_;
+    int32_t pktno_;
     std::string inherit_;
     std::string description_;
     std::vector<FieldInfoBase> v_field_;
@@ -142,7 +142,7 @@ private:
 class FieldInfoValue :public TypeInfoBase
 {
 public:
-    FieldInfoValue(const std::string& value, const std::string& name, const std::string& primitive_type, uint32_t length, const std::string& description)
+    FieldInfoValue(const std::string& value, const std::string& name, const std::string& primitive_type, int32_t length, const std::string& description)
         :value_(value), TypeInfoBase(name, primitive_type, length, description)
     {
 
