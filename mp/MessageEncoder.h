@@ -1,5 +1,5 @@
 #pragma once
-#include"ErrorCode.h"
+#include"MpTypes.h"
 #include"DataBuffer.hpp"
 
 namespace mp

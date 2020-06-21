@@ -3,7 +3,7 @@
 #include<string>
 #include<ostream>
 #include<sstream>
-#include"ErrorCode.h"
+#include"MpTypes.h"
 
 namespace mp
 {
@@ -26,7 +26,7 @@ namespace mp
 
         virtual void FillDefaultValue() = 0;
 
-        virtual uint32_t GetMsgType() = 0;
+        virtual MsgType_Def GetMsgType() = 0;
 
         virtual uint32_t GetMsgSize() = 0;
 
