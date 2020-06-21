@@ -2,10 +2,10 @@
 #include<stdint.h>
 namespace mp
 {
-	enum  class ErrorCode :int32_t
-	{
-		kSuccess = 0,  //成功
-		kWriteError,
-		kReadError
-	};
+    enum  class ErrorCode :int32_t
+    {
+        kSuccess = 0,  //成功
+        kWriteError,
+        kReadError
+    };
 }
