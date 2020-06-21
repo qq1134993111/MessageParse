@@ -69,6 +69,12 @@
     <ClInclude Include="mp\MessageEncoder.h">
       <Filter>mp</Filter>
     </ClInclude>
+    <ClInclude Include="mp\DataBuffer.hpp">
+      <Filter>mp</Filter>
+    </ClInclude>
+    <ClInclude Include="mp\EndianConversion.hpp">
+      <Filter>mp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="mp\message_definition.xml">
