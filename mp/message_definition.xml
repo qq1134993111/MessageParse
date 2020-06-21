@@ -37,9 +37,9 @@
 		<Field name="FundAccoutId" primitive_type="FIXARRAY" length="10"  description="fund account ID" />
 	</Message>
 	<Message name="BaseMessage" pktno="1001" description="基础类">
-	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="交付数量" /> 
-	   <Field name="MyID" primitive_type="AccountID_Def"  description="ID" />
-	   <Field name="UserInfo" primitive_type="UserInfo_Def"  description="user" />
+	   <Field name="DeliverQty1" primitive_type="Qty_Def"  description="交付数量" /> 
+	   <Field name="MyID1" primitive_type="AccountID_Def"  description="ID" />
+	   <Field name="UserInfo1" primitive_type="UserInfo_Def"  description="user" />
 	</Message>
 	<Message name="DeriveMessage" pktno="1002" inherit="BaseMessage" description="子类">
 	   <Field name="DeliverQty" primitive_type="Qty_Def"  description="交付数量" /> 

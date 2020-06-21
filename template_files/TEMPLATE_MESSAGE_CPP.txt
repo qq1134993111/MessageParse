@@ -15,6 +15,9 @@ namespace {{NAME}}
   //{{MSG_NAME}} {{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
   void {{MSG_NAME}}::FillDefaultValue()
   {
+    {% if MSG_INHERIT !="" %}
+      {{MSG_INHERIT}}::FillDefaultValue();
+    {% endif %}
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
@@ -45,6 +48,9 @@ namespace {{NAME}}
   uint32_t {{MSG_NAME}}::GetMsgSize() 
   {
       uint32_t msg_size = 0;
+    {% if MSG_INHERIT !="" %}
+      msg_size += {{MSG_INHERIT}}::GetMsgSize();
+    {% endif %}
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE == 0 %}  {# 基本字段 #}
@@ -87,6 +93,10 @@ namespace {{NAME}}
   mp::ErrorCode {{MSG_NAME}}::Decode(mp::MessageDecoder& decoder)
   {
       mp::ErrorCode ec=mp::ErrorCode::kSuccess;
+    {% if MSG_INHERIT !="" %}
+      ec = {{MSG_INHERIT}}::Decode(decoder);
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+    {% endif %}
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE == 0 %}  {# 基本字段 #}
@@ -153,6 +163,10 @@ namespace {{NAME}}
   mp::ErrorCode {{MSG_NAME}}::Encode(mp::MessageEncoder& encoder)
   {
       mp::ErrorCode ec=mp::ErrorCode::kSuccess;
+    {% if MSG_INHERIT !="" %}
+      ec = {{MSG_INHERIT}}::Encode(encoder);
+      if (ec != mp::ErrorCode::kSuccess) return ec;
+    {% endif %}
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
@@ -205,6 +219,9 @@ namespace {{NAME}}
   void {{MSG_NAME}}::Dump(std::ostream& ostream) 
   {
       ostream << "[{{MSG_NAME}}]" << "[{{MSG_PKT_NO}}]:";
+    {% if MSG_INHERIT !="" %}
+      {{MSG_INHERIT}}::Dump(ostream);
+    {% endif %}  
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {# 注释调试 {{FIELD}} #}
