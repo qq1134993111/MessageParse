@@ -12,7 +12,7 @@ namespace {{NAME}}
 ## endfor
 {% endif %}
 
-  //{{MSG_NAME}} {{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
+  ///<{{MSG_NAME}} {{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
   void {{MSG_NAME}}::FillDefaultValue()
   {
     {% if MSG_INHERIT !="" %}
@@ -22,28 +22,28 @@ namespace {{NAME}}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING"  %}
-      //{{ FIELD.F_NAME }} = ""; //{{ FIELD.F_DESCRIPTION }}
+      //{{ FIELD.F_NAME }} = ""; ///<{{ FIELD.F_DESCRIPTION }}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="FIXARRAY"  %}
-      {{ FIELD.F_NAME }}.fill(' '); //{{ FIELD.F_DESCRIPTION }}
+      {{ FIELD.F_NAME }}.fill(' '); ///<{{ FIELD.F_DESCRIPTION }}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["UCHAR","INT16","UINT16","INT8","UINT8","INT32","UINT32","INT64","UINT64"] %}
-      {{ FIELD.F_NAME }} = 0; //{{ FIELD.F_DESCRIPTION }}
+      {{ FIELD.F_NAME }} = 0; ///<{{ FIELD.F_DESCRIPTION }}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_NAME=="CHAR"  %}
-      {{ FIELD.F_NAME }} = ' '; //{{ FIELD.F_DESCRIPTION }}
+      {{ FIELD.F_NAME }} = ' '; ///<{{ FIELD.F_DESCRIPTION }}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_NAME=="BOOL" %}
-      {{ FIELD.F_NAME }} = false; //{{ FIELD.F_DESCRIPTION }}
+      {{ FIELD.F_NAME }} = false; ///<{{ FIELD.F_DESCRIPTION }}
       {% endif %}
     {% endif %}
     {# 循环信息注释 {{ loop.index1 }}，{{ loop.index }}, {{ loop.is_first }},{{ loop.is_last }}    #}
     {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
-      //{{ FIELD.F_NAME }}.clear(); //{{ FIELD.F_DESCRIPTION }}
+      //{{ FIELD.F_NAME }}.clear(); ///<{{ FIELD.F_DESCRIPTION }}
     {% endif %}
 ## endfor
     {% endif %}
-  } //end {{MSG_NAME}} FillDefaultValue
+  } ///<end {{MSG_NAME}} FillDefaultValue
 
   uint32_t {{MSG_NAME}}::GetMsgSize() 
   {
@@ -55,18 +55,18 @@ namespace {{NAME}}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE == 0 %}  {# 基本字段 #}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE == "STRING" %}
-      msg_size += 4 + static_cast<uint32_t>({{FIELD.F_NAME}}.size());//{{ FIELD.F_DESCRIPTION }}
+      msg_size += 4 + static_cast<uint32_t>({{FIELD.F_NAME}}.size());///<{{ FIELD.F_DESCRIPTION }}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE == "FIXARRAY"  %}
-      msg_size += {{FIELD.F_TYPE_INFO.T_LENGTH}};//{{FIELD.F_NAME}}.size() {{ FIELD.F_DESCRIPTION }}
+      msg_size += {{FIELD.F_TYPE_INFO.T_LENGTH}};///<{{FIELD.F_NAME}}.size() {{ FIELD.F_DESCRIPTION }}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT8","UINT8","INT16","UINT16","INT32","UINT32","INT64","UINT64"] %}
-      msg_size += {{FIELD.F_TYPE_INFO.T_LENGTH}};// sizeof({{ FIELD.F_NAME }})//{{ FIELD.F_DESCRIPTION }}
+      msg_size += {{FIELD.F_TYPE_INFO.T_LENGTH}};///< sizeof({{ FIELD.F_NAME }})//{{ FIELD.F_DESCRIPTION }}
       {% endif %}
     {% endif %}
     {# 循环信息注释 {{ loop.index1 }}，{{ loop.index }}, {{ loop.is_first }},{{ loop.is_last }} #}
     {% if FIELD.F_FILED_TYPE == 1 %} {# 序列 #}
-      //{{ FIELD.F_DESCRIPTION }}
+      ///<{{ FIELD.F_DESCRIPTION }}
       msg_size += 4 ; 
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE == "STRING" %}
       for(auto& item : {{ FIELD.F_NAME }})
@@ -88,7 +88,7 @@ namespace {{NAME}}
     {% endif %}
       return msg_size;
 
-  }//end {{MSG_NAME}} GetMsgSize
+  }///<end {{MSG_NAME}} GetMsgSize
 
   mp::ErrorCode {{MSG_NAME}}::Decode(mp::MessageDecoder& decoder)
   {
@@ -101,24 +101,24 @@ namespace {{NAME}}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE == 0 %}  {# 基本字段 #}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE == "STRING" %}
-      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
+      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; ///<{{ FIELD.F_NAME }}数组大小
       ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
       if (ec != mp::ErrorCode::kSuccess) return ec;
-      {{ FIELD.F_NAME }}.resize(size_{{ lower(FIELD.F_NAME) }}); //{{ FIELD.F_DESCRIPTION }}
-      ec = decoder.Read({{ FIELD.F_NAME }}.data(),{{ FIELD.F_NAME }}.size());
+      {{ FIELD.F_NAME }}.resize(size_{{ lower(FIELD.F_NAME) }}); 
+      ec = decoder.Read({{ FIELD.F_NAME }}.data(),{{ FIELD.F_NAME }}.size());///<{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE != "STRING" %}
-      ec = decoder.Read({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
+      ec = decoder.Read({{ FIELD.F_NAME }}); ///<{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       {% endif %}
     {% endif %}
     {% if FIELD.F_FILED_TYPE == 1 %} {# 序列 #}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE == "STRING" %}
-      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
+      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; ///<{{ FIELD.F_NAME }}数组大小
       ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
       if (ec != mp::ErrorCode::kSuccess) return ec;
-      for(auto i=0; i<size_{{ lower(FIELD.F_NAME) }}; i++)
+      for(auto i=0; i<size_{{ lower(FIELD.F_NAME) }}; i++) ///<{{ FIELD.F_DESCRIPTION }}
       {
           uint32_t item_size = 0;
           ec = decoder.Read(item_size);
@@ -131,10 +131,10 @@ namespace {{NAME}}
       }
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT8","UINT8","INT16","UINT16","INT32","UINT32","INT64","UINT64","FIXARRAY"] %}
-      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
+      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; ///<{{ FIELD.F_NAME }}数组大小
       ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
       if (ec != mp::ErrorCode::kSuccess) return ec;
-      for(auto i=0; i<size_{{ lower(FIELD.F_NAME) }}; i++)
+      for(auto i=0; i<size_{{ lower(FIELD.F_NAME) }}; i++) ///<{{ FIELD.F_DESCRIPTION }}
       {
           {{FIELD.F_PRIMITIVE_TYPE}} item;
           ec = decoder.Read(item);
@@ -143,10 +143,10 @@ namespace {{NAME}}
       }
       {% endif %}
       {% if not FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT8","UINT8","INT16","UINT16","INT32","UINT32","INT64","UINT64","FIXARRAY","STRING"]  %}
-      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; //数组大小
+      uint32_t size_{{ lower(FIELD.F_NAME) }} = 0; ///<{{ FIELD.F_NAME }}数组大小
       ec = decoder.Read(size_{{ lower(FIELD.F_NAME) }});
       if (ec != mp::ErrorCode::kSuccess) return ec;
-      for(auto i=0; i<size_{{ lower(FIELD.F_NAME) }}; i++)
+      for(auto i=0; i<size_{{ lower(FIELD.F_NAME) }}; i++) ///<{{ FIELD.F_DESCRIPTION }}
       {
           {{FIELD.F_PRIMITIVE_TYPE}} item;
           ec=item.Decode(decoder);
@@ -158,7 +158,7 @@ namespace {{NAME}}
 ## endfor
      {% endif %}
       return ec;
-  } //end of {{MSG_NAME}} Decode
+  } ///<end of {{MSG_NAME}} Decode
    
   mp::ErrorCode {{MSG_NAME}}::Encode(mp::MessageEncoder& encoder)
   {
@@ -171,18 +171,18 @@ namespace {{NAME}}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING"  %}
-      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size())); //{{ FIELD.F_DESCRIPTION }}
+      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size())); ///<{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       ec = encoder.Write({{ FIELD.F_NAME }}.data(), {{ FIELD.F_NAME }}.size());
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="STRING" %}
-      ec = encoder.Write({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
+      ec = encoder.Write({{ FIELD.F_NAME }}); ///<{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       {% endif %}
     {% endif %}
     {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE == "STRING" %}
-      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size())); //{{ FIELD.F_DESCRIPTION }}
+      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size())); ///<{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       for(auto& item : {{ FIELD.F_NAME }})
       {
@@ -193,7 +193,7 @@ namespace {{NAME}}
        }
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT16","UINT16","INT8","UINT8","INT32","UINT32","INT64","UINT64","FIXARRAY"] %}
-      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size())); //{{ FIELD.F_DESCRIPTION }}
+      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size())); ///<{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       for(auto& item : {{ FIELD.F_NAME }})
       {
@@ -202,7 +202,7 @@ namespace {{NAME}}
       }
       {% endif %}
       {% if not FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE in ["BOOL","CHAR","UCHAR","INT8","UINT8","INT16","UINT16","INT32","UINT32","INT64","UINT64","FIXARRAY","STRING"]  %}
-      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size()));//{{ FIELD.F_DESCRIPTION }}
+      ec = encoder.Write(static_cast<uint32_t>({{ FIELD.F_NAME }}.size())); ///<{{ FIELD.F_DESCRIPTION }}
       if (ec != mp::ErrorCode::kSuccess) return ec;
       for(auto& item : {{ FIELD.F_NAME }})
       {
@@ -214,7 +214,7 @@ namespace {{NAME}}
 ## endfor
     {% endif %}
       return ec;
-  } //end of {{MSG_NAME}}
+  } ///<end of {{MSG_NAME}} Encode
    
   void {{MSG_NAME}}::Dump(std::ostream& ostream) 
   {
@@ -227,10 +227,10 @@ namespace {{NAME}}
     {# 注释调试 {{FIELD}} #}
     {% if FIELD.F_FILED_TYPE == 0 %}  {# 基本字段 #}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE == "FIXARRAY" %}
-      ostream << "{{FIELD.F_NAME}}:" <<mp::ToStringTrim({{ FIELD.F_NAME }}); //{{ FIELD.F_DESCRIPTION }}
+      ostream << "{{FIELD.F_NAME}}:" <<mp::ToStringTrim({{ FIELD.F_NAME }}); ///<{{ FIELD.F_DESCRIPTION }}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE != "FIXARRAY" %}
-      ostream << "{{ FIELD.F_NAME }}:" << {{ FIELD.F_NAME }}; //{{ FIELD.F_DESCRIPTION }}
+      ostream << "{{ FIELD.F_NAME }}:" << {{ FIELD.F_NAME }}; ///<{{ FIELD.F_DESCRIPTION }}
       {% endif %}
       {%if not loop.is_last  %}
       ostream << "|"; 
@@ -238,7 +238,7 @@ namespace {{NAME}}
 	{% endif %}
     {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
       ostream << "{{ FIELD.F_NAME }}" << " size: " << {{ FIELD.F_NAME }}.size() << "[" ;
-      for(auto& item : {{ FIELD.F_NAME }}) //{{ FIELD.F_DESCRIPTION }}
+      for(auto& item : {{ FIELD.F_NAME }}) ///<{{ FIELD.F_DESCRIPTION }}
       {
           {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE == "FIXARRAY" %}
           ostream << "{{FIELD.F_NAME}} item:" << mp::ToStringTrim(item) << ","; 
@@ -258,10 +258,10 @@ namespace {{NAME}}
     {% endif %}
 ## endfor
     {% endif %}
-  } //end of {{MSG_NAME}} Dump
+  } ///<end of {{MSG_NAME}} Dump
 
 {% if length(NAMESPACE) > 0 %}
 ## for NAME in NAMESPACE
-} //end of namespace {{NAME}}
+} ///<end of namespace {{NAME}}
 ## endfor
 {% endif %}

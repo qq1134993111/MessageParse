@@ -23,7 +23,10 @@ namespace {{NAME}}
 ## endfor
 {% endif %}
 
-  //{{MSG_NAME}} {{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
+  /**
+  * @brief {{MSG_NAME}}
+  *  {{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
+  */
   class {{MSG_NAME}} : public {% if MSG_INHERIT!="" %} {{MSG_INHERIT}} 
   {% endif %} {% if  MSG_INHERIT=="" %} mp::MessageBase 
   {% endif %}
@@ -32,7 +35,7 @@ namespace {{NAME}}
       {{MSG_NAME}}(){}
       ~{{MSG_NAME}}(){}
       virtual void FillDefaultValue() override;
-      virtual MsgType_Def GetMsgType() override { return {{MSG_PKT_NO}};} //{{MSG_DESCRIPTION}}
+      virtual mp::MsgType_Def GetMsgType() override { return {{MSG_PKT_NO}};} ///<{{MSG_DESCRIPTION}}
       virtual uint32_t GetMsgSize() override;
       virtual mp::ErrorCode Decode(mp::MessageDecoder& decoder) override;
       virtual mp::ErrorCode Encode(mp::MessageEncoder& encoder) override;
@@ -41,18 +44,18 @@ namespace {{NAME}}
     {% if exists("FIELDS") %}
 ## for FIELD in FIELDS
     {% if FIELD.F_FILED_TYPE==0 %}  {# 基本字段 #}
-      {{ RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH) }} {{ FIELD.F_NAME }}; //{{ FIELD.F_DESCRIPTION }}
+      {{ RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH) }} {{ FIELD.F_NAME }}; ///<{{ FIELD.F_DESCRIPTION }}
     {% endif %}
     {# 循环信息注释 {{ loop.index1 }}，{{ loop.index }}, {{ loop.is_first }},{{ loop.is_last }}    #}
     {% if FIELD.F_FILED_TYPE==1 %} {# 序列 #}
-      std::vector<{{ RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH) }}> {{ FIELD.F_NAME }}; //{{ FIELD.F_DESCRIPTION }}
+      std::vector<{{ RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH) }}> {{ FIELD.F_NAME }}; ///<{{ FIELD.F_DESCRIPTION }}
     {% endif %}
 ## endfor
     {% endif %}
-  }; //end of class {{MSG_NAME}}
+  }; ///< end of class {{MSG_NAME}}
 
 {% if length(NAMESPACE) > 0 %}
 ## for NAME in NAMESPACE
-} //end of namespace {{NAME}}
+} ///< end of namespace {{NAME}}
 ## endfor
 {% endif %}

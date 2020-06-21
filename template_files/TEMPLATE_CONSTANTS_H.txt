@@ -13,7 +13,11 @@ namespace {{NAME}}
 
 ## for CONSTANT in CONSTANTS
   {#{CONSTANT}#}
-  class {{CONSTANT.CONST_NAME}}  //{{CONSTANT.CONST_DESCRIPTION}}
+  /** 
+  * @brief {{CONSTANT.CONST_NAME}} 
+  *        {{CONSTANT.CONST_DESCRIPTION}}
+  */
+  class {{CONSTANT.CONST_NAME}}  
   {
     public:
       {#{CONSTANT}#}
@@ -24,19 +28,19 @@ namespace {{NAME}}
       inline static {{RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH)}} k{{FIELD.F_NAME}} = mp::ToArray<{{FIELD.F_TYPE_INFO.T_LENGTH}}>("{{FIELD.F_VALUE}}"); //{{FIELD.F_DESCRIPTION}}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE=="STRING" %}
-      inline static {{RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH)}} k{{FIELD.F_NAME}} = "{{FIELD.F_VALUE}}"; //{{FIELD.F_DESCRIPTION}}
+      inline static {{RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH)}} k{{FIELD.F_NAME}} = "{{FIELD.F_VALUE}}"; ///<{{FIELD.F_DESCRIPTION}}
       {% endif %}
       {% if FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="FIXARRAY" and FIELD.F_TYPE_INFO.T_PRIMITIVE_TYPE!="STRING" %}
-      inline static {{RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH)}} k{{FIELD.F_NAME}} = {{FIELD.F_VALUE}}; //{{FIELD.F_DESCRIPTION}}
+      inline static {{RevisedType(FIELD.F_PRIMITIVE_TYPE,FIELD.F_LENGTH)}} k{{FIELD.F_NAME}} = {{FIELD.F_VALUE}}; ///<{{FIELD.F_DESCRIPTION}}
       {% endif %}
 ## endfor
 
-  }; //end of class {{CONSTANT.CONST_NAME}} 
+  }; ///<end of class {{CONSTANT.CONST_NAME}} 
 
 ## endfor
 
 {% if length(NAMESPACE) > 0 %}
 ## for NAME in NAMESPACE
-} //end of namespace {{NAME}}
+} ///<end of namespace {{NAME}}
 ## endfor
 {% endif %}
