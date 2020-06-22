@@ -3,6 +3,7 @@
 
 #include<vector>
 #include"TypesDefinition.h"
+#include"MessageTypesDefinition.h"
 
 {% if MSG_INHERIT == "" %}
 #include"MessageBase.h"
@@ -36,7 +37,11 @@ namespace {{NAME}}
       {{MSG_NAME}}(){}
       ~{{MSG_NAME}}(){}
       virtual void FillDefaultValue() override;
-      virtual mp::MsgType_Def GetMsgType() override { return {{MSG_PKT_NO}};} ///<{{MSG_DESCRIPTION}}
+      virtual mp::MsgType_Def GetMsgType() override 
+      { 
+          ///<{{MSG_PKT_NO}} {{MSG_DESCRIPTION}}
+          return {% if MSG_PKT_NO !=0 %}k{{MSG_NAME}}{% endif %}{% if MSG_PKT_NO == 0 %}0{% endif %};
+      }
       virtual uint32_t GetMsgSize() override;
       virtual mp::ErrorCode Decode(mp::MessageDecoder& decoder) override;
       virtual mp::ErrorCode Encode(mp::MessageEncoder& encoder) override;

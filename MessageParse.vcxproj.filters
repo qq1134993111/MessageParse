@@ -43,7 +43,10 @@
     <Text Include="template_files\TEMPLATE_MESSAGE_H.txt">
       <Filter>template_files</Filter>
     </Text>
-    <Text Include="template_files\TEMPLATE_TYPES_H.txt">
+    <Text Include="template_files\TEMPLATE_TYPES_DEFINITION_H.txt">
+      <Filter>template_files</Filter>
+    </Text>
+    <Text Include="template_files\TEMPLATE_MESSAGE_TYPES_DEFINITION_H.txt">
       <Filter>template_files</Filter>
     </Text>
   </ItemGroup>
@@ -55,9 +58,6 @@
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="mp\ArrayUtil.h">
-      <Filter>mp</Filter>
-    </ClInclude>
-    <ClInclude Include="mp\ErrorCode.h">
       <Filter>mp</Filter>
     </ClInclude>
     <ClInclude Include="mp\MessageBase.h">
@@ -73,6 +73,15 @@
       <Filter>mp</Filter>
     </ClInclude>
     <ClInclude Include="mp\EndianConversion.hpp">
+      <Filter>mp</Filter>
+    </ClInclude>
+    <ClInclude Include="mp\AutoFactory.h">
+      <Filter>mp</Filter>
+    </ClInclude>
+    <ClInclude Include="mp\SetValue.h">
+      <Filter>mp</Filter>
+    </ClInclude>
+    <ClInclude Include="mp\MpTypes.h">
       <Filter>mp</Filter>
     </ClInclude>
   </ItemGroup>

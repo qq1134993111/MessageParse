@@ -2,7 +2,7 @@
 #pragma once
 
 #include<vector>
-#include"TypesDefinition.h"
+#include"MpTypes.h"
 
 {% if length(NAMESPACE) > 0 %}
 ## for NAME in NAMESPACE
@@ -12,7 +12,9 @@ namespace {{NAME}}
 {% endif %}
 
 ## for MSG_INFO in MSG_INFOS
-    static const k{{MSG_INFO.MSG_NAME}} = {{MSG_INFO.MSG_PKT_NO}} ; //<{{MSG_INFO.MSG_DESCRIPTION}}
+    {% if MSG_INFO.MSG_PKT_NO !=0 %}
+    static const mp::MsgType_Def k{{MSG_INFO.MSG_NAME}} = {{MSG_INFO.MSG_PKT_NO}} ; //<{{MSG_INFO.MSG_DESCRIPTION}}
+    {% endif %}
 ## endfor
 
 {% if length(NAMESPACE) > 0 %}

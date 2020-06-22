@@ -168,18 +168,21 @@
     <Text Include="template_files\TEMPLATE_CONSTANTS_H.txt" />
     <Text Include="template_files\TEMPLATE_MESSAGE_CPP.txt" />
     <Text Include="template_files\TEMPLATE_MESSAGE_H.txt" />
-    <Text Include="template_files\TEMPLATE_TYPES_H.txt" />
+    <Text Include="template_files\TEMPLATE_MESSAGE_TYPES_DEFINITION_H.txt" />
+    <Text Include="template_files\TEMPLATE_TYPES_DEFINITION_H.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="MessageParse.h" />
     <ClInclude Include="mp\ArrayUtil.h" />
+    <ClInclude Include="mp\AutoFactory.h" />
     <ClInclude Include="mp\DataBuffer.hpp" />
     <ClInclude Include="mp\EndianConversion.hpp" />
-    <ClInclude Include="mp\ErrorCode.h" />
+    <ClInclude Include="mp\MpTypes.h" />
     <ClInclude Include="mp\MessageBase.h" />
     <ClInclude Include="mp\MessageDecoder.h" />
     <ClInclude Include="mp\MessageEncoder.h" />
+    <ClInclude Include="mp\SetValue.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="mp\message_definition.xml" />

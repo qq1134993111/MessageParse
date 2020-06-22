@@ -551,8 +551,8 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 
         if (1)
         {
-            std::cout << fmt::format("parse TEMPLATE_MESSAGE_TYPES_H\n");
-            inja::Template temp_msg_h = env.parse_template("TEMPLATE_MESSAGE_TYPES_H.txt");
+            std::cout << fmt::format("parse TEMPLATE_MESSAGE_TYPES_DEFINITION_H.txt\n");
+            inja::Template temp_msg_h = env.parse_template("TEMPLATE_MESSAGE_TYPES_DEFINITION_H.txt");
 
             inja::json types_json;
             types_json["NAMESPACE"] = v_namespace;
@@ -562,7 +562,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
                     continue;
 
                 inja::json json;
-                json["NAMESPACE"] = v_namespace;
+                //json["NAMESPACE"] = v_namespace;
                 json["MSG_DESCRIPTION"] = msg_info.GetDescription();
                 json["MSG_INHERIT"] = msg_info.GetInherit();
                 json["MSG_PKT_NO"] = msg_info.GetPktNo();
