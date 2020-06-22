@@ -551,8 +551,35 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 
         if (1)
         {
-            std::cout << fmt::format("parse TEMPLATE_TYPES_H\n");
-            inja::Template temp_types_h = env.parse_template("TEMPLATE_TYPES_H.txt");
+            std::cout << fmt::format("parse TEMPLATE_MESSAGE_TYPES_H\n");
+            inja::Template temp_msg_h = env.parse_template("TEMPLATE_MESSAGE_TYPES_H.txt");
+
+            inja::json types_json;
+            types_json["NAMESPACE"] = v_namespace;
+            for (auto& msg_info : v_msg_struct_info_)
+            {
+                if (msg_info.GetPktNo() == 0)
+                    continue;
+
+                inja::json json;
+                json["NAMESPACE"] = v_namespace;
+                json["MSG_DESCRIPTION"] = msg_info.GetDescription();
+                json["MSG_INHERIT"] = msg_info.GetInherit();
+                json["MSG_PKT_NO"] = msg_info.GetPktNo();
+                json["MSG_NAME"] = msg_info.GetName();
+
+                types_json["MSG_INFOS"].push_back(json);
+            }
+
+            std::string write_file_name = "MessageTypesDefinition.h";
+            std::cout << fmt::format("write {}\n", write_file_name);
+            env.write(temp_msg_h, types_json, write_file_name);
+        }
+
+        if (1)
+        {
+            std::cout << fmt::format("parse TEMPLATE_TYPES_DEFINITION_H\n");
+            inja::Template temp_types_h = env.parse_template("TEMPLATE_TYPES_DEFINITION_H.txt");
             inja::json json_types;
             json_types["NAMESPACE"] = v_namespace;
             json_types["TYPES"].push_back({ {"T_NAME","CHAR"},{"T_PRIMITIVE_TYPE","CHAR"},{"T_LENGTH",1},{"T_DESCRIPTION","CHAR"} });
@@ -591,8 +618,8 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
 
             std::cout << json_types << "\n";
 
-            std::cout << fmt::format("write Types.h\n");
-            env.write(temp_types_h, json_types, "Types.h");
+            std::cout << fmt::format("write TypesDefinition.h\n");
+            env.write(temp_types_h, json_types, "TypesDefinition.h");
         }
 
         if (1)

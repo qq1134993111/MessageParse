@@ -1,0 +1,22 @@
+
+#pragma once
+
+#include<vector>
+#include"TypesDefinition.h"
+
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+namespace {{NAME}}
+{
+## endfor
+{% endif %}
+
+## for MSG_INFO in MSG_INFOS
+    static const k{{MSG_INFO.MSG_NAME}} = {{MSG_INFO.MSG_PKT_NO}} ; //<{{MSG_INFO.MSG_DESCRIPTION}}
+## endfor
+
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+} //end of namespace {{NAME}}
+## endfor
+{% endif %}
