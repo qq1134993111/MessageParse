@@ -1,0 +1,29 @@
+
+#pragma once
+
+#include"MessageFactory.h"
+
+## for MSG_INFO in MSG_INFOS
+    {% if MSG_INFO.MSG_PKT_NO !=0 %}
+#include"{{MSG_INFO.MSG_NAME}}.h"
+    {% endif %}
+## endfor
+
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+namespace {{NAME}}
+{
+## endfor
+{% endif %}
+
+## for MSG_INFO in MSG_INFOS
+    {% if MSG_INFO.MSG_PKT_NO !=0 %}
+    REGIST_{{upper(FILENAME)}}_MESSAGE({{MSG_INFO.MSG_PKT_NO}},{{MSG_INFO.MSG_NAME}}) ; //<{{MSG_INFO.MSG_PKT_NO}} {{MSG_INFO.MSG_DESCRIPTION}}
+    {% endif %}
+## endfor
+
+{% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE
+} //end of namespace {{NAME}}
+## endfor
+{% endif %}

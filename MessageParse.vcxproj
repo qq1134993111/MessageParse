@@ -166,9 +166,11 @@
   <ItemGroup>
     <Text Include="template_files\TEMPLATE_CONSTANTS_CPP.txt" />
     <Text Include="template_files\TEMPLATE_CONSTANTS_H.txt" />
+    <Text Include="template_files\TEMPLATE_FACTORY_H.txt" />
     <Text Include="template_files\TEMPLATE_MESSAGE_CPP.txt" />
     <Text Include="template_files\TEMPLATE_MESSAGE_H.txt" />
     <Text Include="template_files\TEMPLATE_MESSAGE_TYPES_DEFINITION_H.txt" />
+    <Text Include="template_files\TEMPLATE_FACTORY_REGISTER_CPP.txt" />
     <Text Include="template_files\TEMPLATE_TYPES_DEFINITION_H.txt" />
   </ItemGroup>
   <ItemGroup>

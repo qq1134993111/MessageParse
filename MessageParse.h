@@ -265,7 +265,8 @@ public:
     bool Write(const std::string& template_path, const std::string& write_path);
 
 private:
-    std::vector<std::string> v_namespace;
+    std::string file_name_;
+    std::vector<std::string> v_namespace_;
     EndianType endian_;
     //保存类型信息
     std::unordered_map<std::string, TypeInfoBase> type_info_map_;

@@ -16,6 +16,9 @@ bool MessageParser::LoadXml(const std::string& file_path)
 {
     try
     {
+        boost::filesystem::path path(file_path);
+        file_name_ = path.stem().string();
+
         boost::property_tree::ptree root;
         boost::property_tree::read_xml(file_path, root);
 
@@ -26,7 +29,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
         endian_ = (EndianType)root.get<int32_t>("File.<xmlattr>.Endian");
 
         std::string str_namespace = root.get<std::string>("File.<xmlattr>.namespace");
-        boost::algorithm::split(v_namespace, str_namespace, boost::is_any_of("."), boost::token_compress_on);
+        boost::algorithm::split(v_namespace_, str_namespace, boost::is_any_of("."), boost::token_compress_on);
 
         //类型信息
         for (BOOST_AUTO(pos, types_tree.begin()); pos != types_tree.end(); ++pos)
@@ -477,6 +480,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
         env.set_trim_blocks(true); //将删除语句后的第一个换行符
         env.set_lstrip_blocks(true);//
 
+        //类型定义
         if (1)
         {
 
@@ -488,7 +492,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
             for (auto& [key, value] : msg_name_struct_map_)
             {
                 inja::json json;
-                json["NAMESPACE"] = v_namespace;
+                json["NAMESPACE"] = v_namespace_;
                 json["MSG_DESCRIPTION"] = value.GetDescription();
                 json["MSG_INHERIT"] = value.GetInherit();
                 json["MSG_PKT_NO"] = value.GetPktNo();
@@ -549,13 +553,14 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
             }
         }
 
+        //消息号定义
         if (1)
         {
             std::cout << fmt::format("parse TEMPLATE_MESSAGE_TYPES_DEFINITION_H.txt\n");
             inja::Template temp_msg_h = env.parse_template("TEMPLATE_MESSAGE_TYPES_DEFINITION_H.txt");
 
             inja::json types_json;
-            types_json["NAMESPACE"] = v_namespace;
+            types_json["NAMESPACE"] = v_namespace_;
             for (auto& msg_info : v_msg_struct_info_)
             {
                 if (msg_info.GetPktNo() == 0)
@@ -576,12 +581,59 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
             env.write(temp_msg_h, types_json, write_file_name);
         }
 
+        //工厂定义
+        if (1)
+        {
+            std::cout << fmt::format("parse TEMPLATE_FACTORY_H.txt\n");
+            inja::Template temp_msg_h = env.parse_template("TEMPLATE_FACTORY_H.txt");
+
+            inja::json json;
+            json["NAMESPACE"] = v_namespace_;
+            json["FILENAME"] = file_name_;
+
+
+            std::string write_file_name = "MessageFactory.h";
+            std::cout << fmt::format("write {}\n", write_file_name);
+            env.write(temp_msg_h, json, write_file_name);
+        }
+        //工厂注册
+        if (1)
+        {
+            std::cout << fmt::format("parse TEMPLATE_FACTORY_REGISTER_CPP.txt\n");
+            inja::Template temp_factory_register_cpp = env.parse_template("TEMPLATE_FACTORY_REGISTER_CPP.txt");
+
+            inja::json types_json;
+            types_json["NAMESPACE"] = v_namespace_;
+            types_json["FILENAME"] = file_name_;
+
+            for (auto& msg_info : v_msg_struct_info_)
+            {
+                if (msg_info.GetPktNo() == 0)
+                    continue;
+
+                inja::json json;
+                //json["NAMESPACE"] = v_namespace;
+                json["MSG_DESCRIPTION"] = msg_info.GetDescription();
+                json["MSG_INHERIT"] = msg_info.GetInherit();
+                json["MSG_PKT_NO"] = msg_info.GetPktNo();
+                json["MSG_NAME"] = msg_info.GetName();
+
+                types_json["MSG_INFOS"].push_back(json);
+            }
+
+            std::string write_file_name = "MessageFactoryRegister.cpp";
+            std::cout << fmt::format("write {}\n", write_file_name);
+            env.write(temp_factory_register_cpp, types_json, write_file_name);
+        }
+
+
+        //类型定义
         if (1)
         {
             std::cout << fmt::format("parse TEMPLATE_TYPES_DEFINITION_H\n");
             inja::Template temp_types_h = env.parse_template("TEMPLATE_TYPES_DEFINITION_H.txt");
             inja::json json_types;
-            json_types["NAMESPACE"] = v_namespace;
+            json_types["NAMESPACE"] = v_namespace_;
             json_types["TYPES"].push_back({ {"T_NAME","CHAR"},{"T_PRIMITIVE_TYPE","CHAR"},{"T_LENGTH",1},{"T_DESCRIPTION","CHAR"} });
             json_types["TYPES"].push_back({ {"T_NAME","UCHAR"},{"T_PRIMITIVE_TYPE","UCHAR"},{"T_LENGTH",1},{"T_DESCRIPTION","UNSIGNED CHAR"} });
             json_types["TYPES"].push_back({ {"T_NAME","BOOL"},{"T_PRIMITIVE_TYPE","BOOL"},{"T_LENGTH",1},{"T_DESCRIPTION","BOOL"} });
@@ -622,6 +674,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
             env.write(temp_types_h, json_types, "TypesDefinition.h");
         }
 
+        //常量定义
         if (1)
         {
             std::cout << fmt::format("parse TEMPLATE_CONSTANTS_H\n");
@@ -629,7 +682,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
             std::cout << fmt::format("parse TEMPLATE_CONSTANTS_CPP\n");
             inja::Template temp_constants_cpp = env.parse_template("TEMPLATE_CONSTANTS_CPP.txt");
             inja::json json_constants;
-            json_constants["NAMESPACE"] = v_namespace;
+            json_constants["NAMESPACE"] = v_namespace_;
 
             for (auto& [key, value] : const_name_map_)
             {

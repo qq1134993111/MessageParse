@@ -49,6 +49,12 @@
     <Text Include="template_files\TEMPLATE_MESSAGE_TYPES_DEFINITION_H.txt">
       <Filter>template_files</Filter>
     </Text>
+    <Text Include="template_files\TEMPLATE_FACTORY_H.txt">
+      <Filter>template_files</Filter>
+    </Text>
+    <Text Include="template_files\TEMPLATE_FACTORY_REGISTER_CPP.txt">
+      <Filter>template_files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MessageParse.h">
