@@ -18,11 +18,22 @@ namespace {{NAME}}
 
 using {{FILENAME}}MessageFactory = mp::factory<mp::MsgType_Def , mp::MessageBase>;
 
-#define REGIST_{{upper(FILENAME)}}_MESSAGE(msg_no,MESSAGE) static {{FILENAME}}MessageFactory::register_t<MESSAGE> s_##MESSAGE##msg_no(msg_no);
-#define CREATE_{{upper(FILENAME)}}_MESSAGE(msg_no) {{FILENAME}}MessageFactory::get().create(msg_no);
+
 
 {% if length(NAMESPACE) > 0 %}
 ## for NAME in NAMESPACE
 } ///<end of namespace {{NAME}}
 ## endfor
 {% endif %}
+
+///<消息注册
+#define REGIST_{{upper(FILENAME)}}_MESSAGE(msg_no,MESSAGE) {% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE{{NAME}}::
+## endfor
+{% endif %}{{FILENAME}}MessageFactory::register_t<MESSAGE> s_##MESSAGE##msg_no(msg_no)
+
+///<消息创建
+#define CREATE_{{upper(FILENAME)}}_MESSAGE(msg_no){% if length(NAMESPACE) > 0 %}
+## for NAME in NAMESPACE{{NAME}}::
+## endfor
+{% endif %}{{{FILENAME}}MessageFactory::get().create(msg_no);
