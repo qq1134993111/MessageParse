@@ -307,7 +307,7 @@ bool MessageParser::LoadXml(const std::string& file_path)
                     if (v2.first == "<xmlattr>")
                         continue;
 
-                    std::cout << fmt::format("Const Filed tag:{0},data:{1}\n", v2.first, v2.second.get_value(""));
+                    std::cout << fmt::format("Const value tag:{0},data:{1}\n", v2.first, v2.second.get_value(""));
                     std::string field_name = v2.second.get<std::string>("<xmlattr>.name");
                     std::string description = v2.second.get<std::string>("<xmlattr>.description");
                     std::string value = v2.second.get<std::string>("");
@@ -348,8 +348,6 @@ bool MessageParser::LoadXml(const std::string& file_path)
                         {
                             try
                             {
-
-
                                 if (original_type == "INT8")
                                 {
                                     auto v = std::stoll(value);
@@ -488,7 +486,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
         env.set_lstrip_blocks(true);//
 
         //类型定义
-        if (0)
+        if (1)
         {
 
             std::cout << fmt::format("parse TEMPLATE_MESSAGE_H\n");
@@ -561,7 +559,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
         }
 
         //消息号定义
-        if (0)
+        if (1)
         {
             std::cout << fmt::format("parse TEMPLATE_MESSAGE_TYPES_DEFINITION_H.txt\n");
             inja::Template temp_msg_h = env.parse_template("TEMPLATE_MESSAGE_TYPES_DEFINITION_H.txt");
@@ -591,8 +589,23 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
         //工厂定义
         if (1)
         {
+         
+            env.add_callback("GenNamespacePrefix",
+                [&](inja::Arguments& args)
+                { 
+                    auto v_space = args.at(0)->get<std::vector<std::string>>();
+                    std::string s;
+                    for (auto& v : v_space)
+                    {
+                        s += v + "::";
+                    }
+                    return s;     //A::B::
+                });
+
             std::cout << fmt::format("parse TEMPLATE_FACTORY_H.txt\n");
             inja::Template temp_msg_h = env.parse_template("TEMPLATE_FACTORY_H.txt");
+
+       
 
             inja::json json;
             json["NAMESPACE"] = v_namespace_;
@@ -612,6 +625,7 @@ bool MessageParser::Write(const std::string& template_path, const std::string& w
             inja::json types_json;
             types_json["NAMESPACE"] = v_namespace_;
             types_json["FILENAME"] = file_name_;
+
 
             for (auto& msg_info : v_msg_struct_info_)
             {
