@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include<iostream>
 #include<string>
@@ -243,7 +243,7 @@ public:
     {
         type_info_map_ =
         {
-            //»ù±¾ÀàĞÍ
+            //åŸºæœ¬ç±»å‹
             {"CHAR",{"CHAR","CHAR",1,""}},
             {"UCHAR",{"UCHAR","UCHAR",1,""}},
             {"BOOL",{"BOOL","BOOL",1,""}},
@@ -268,14 +268,14 @@ private:
     std::string file_name_;
     std::vector<std::string> v_namespace_;
     EndianType endian_;
-    //±£´æÀàĞÍĞÅÏ¢
+    //ä¿å­˜ç±»å‹ä¿¡æ¯
     std::unordered_map<std::string, TypeInfoBase> type_info_map_;
     std::vector<TypeInfoBase> v_type_info_;
-    //±£´æÏûÏ¢ĞÅÏ¢
+    //ä¿å­˜æ¶ˆæ¯ä¿¡æ¯
     std::unordered_map<std::string, MessageInfoBase> msg_name_struct_map_;
     std::unordered_map<uint32_t, MessageInfoBase> msg_pktno_struct_map_;
     std::vector<MessageInfoBase> v_msg_struct_info_;
-    //±£´æ³£Á¿ĞÅÏ¢
+    //ä¿å­˜å¸¸é‡ä¿¡æ¯
     std::unordered_map<std::string, ConstInfoBase> const_name_map_;
     std::vector<ConstInfoBase> v_const_info_;
 
