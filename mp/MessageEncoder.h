@@ -1,4 +1,7 @@
 #pragma once
+#include<exception>
+#include<iostream>
+
 #include"MpTypes.h"
 #include"DataBuffer.hpp"
 
@@ -27,9 +30,15 @@ namespace mp
                     data_buffer_.Write(value);
                 }
             }
+            catch (std::exception& e)
+            {
+                std::cout << "MessageDecoder Write exception : " << e.what() << "\n";
+                return ErrorCode::kWritError;
+            }
             catch (...)
             {
-                return ErrorCode::kWriteError;
+                std::cout << "MessageDecoder Write unkown exception \n";
+                return ErrorCode::kWritError;
             }
 
             return ErrorCode::kSuccess;
@@ -52,9 +61,15 @@ namespace mp
             {
                 data_buffer_.Write(p, size);
             }
+            catch (std::exception& e)
+            {
+                std::cout << "MessageDecoder Write exception : " << e.what() << "\n";
+                return ErrorCode::kWritError;
+            }
             catch (...)
             {
-                return ErrorCode::kWriteError;
+                std::cout << "MessageDecoder Write unkown exception \n";
+                return ErrorCode::kWritError;
             }
             return ErrorCode::kSuccess;
         }
