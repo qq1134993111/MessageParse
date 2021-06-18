@@ -1,13 +1,13 @@
 #pragma once
-#include<cstdint>
-#include<stdexcept>
-#include<string.h>
-#include<exception>
-#include<assert.h>
+#include <cstdint>
+#include <string.h>
+#include <assert.h>
+//#include <stdexcept>
 #include <algorithm>
 #include <string>
 #include <string_view>
-#include"EndianConversion.hpp"
+#include <type_traits>
+#include "EndianConversion.hpp"
 
 namespace mp
 {
@@ -274,7 +274,7 @@ namespace mp
         {
             if constexpr (sizeof...(args) > 0)
             {
-                return  (WriteBatch<endian>(args), ...);//fold
+                return  (WriteBatch<endian>(value), ..., WriteBatch<endian>(args));//fold
             }
             else
             {
@@ -355,20 +355,19 @@ namespace mp
             return false;
         }
 
+
+
         template<ByteOrderEndian endian = ByteOrderEndian::kNative, typename Head, class... Tail>
         bool WriteFrontBatch(Head&& value, Tail&&... tail)  noexcept
         {
+            if (FrontWriteableBytes() < GetBatchDataSize(value, tail...))
+            {
+                return false;
+            }
+
             if constexpr (sizeof...(tail) > 0)
             {
-                if constexpr (std::is_integral_v<std::remove_cvref_t<Head>>)
-                {
-                    return WriteFrontBatch<endian>(tail...) && WriteFront<endian>(value);
-                }
-                else
-                {
-                    return WriteFrontBatch<endian>(tail...) && WriteFront(value);
-
-                }
+                return WriteFrontBatch<endian>(tail...) && WriteFrontBatch<endian>(value);
             }
             else
             {
@@ -413,19 +412,19 @@ namespace mp
         }
 
         template<size_t N>
-        void Read(const std::array<char, N>& array)
+        void Read(std::array<char, N>& array) noexcept
         {
             Read(array.data(), N);
         }
 
         template<size_t N>
-        void Read(const char(&array)[N])
+        void Read(char(&array)[N])  noexcept
         {
             Read(array, N);
         }
 
         template<ByteOrderEndian endian = ByteOrderEndian::kNative, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0 >
-        void Read(T& value)
+        void Read(T& value)  noexcept
         {
             if constexpr (endian == ByteOrderEndian::kNative)
             {
@@ -446,7 +445,7 @@ namespace mp
         }
 
         template<typename T>
-        void ReadIntegerLE(T& value)
+        void ReadIntegerLE(T& value)  noexcept
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
             Read(&value, sizeof(value));
@@ -454,15 +453,80 @@ namespace mp
         }
 
         template<typename T>
-        void ReadIntegerBE(T& value)
+        void ReadIntegerBE(T& value)  noexcept
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
             Read(&value, sizeof(value));
             value = endian::betoh(value);
         }
 
+    private:
+        template< template<typename...> class U, typename T >
+        struct is_template_instant_of : std::false_type {};
+
+        template< template <typename...> class U, typename... args >
+        struct is_template_instant_of< U, U<args...> > : std::true_type {};
+
+        template<typename T>
+        struct is_stdstring : is_template_instant_of<std::basic_string, T >
+        {};
+        template<typename T>
+        struct is_stdstringview : is_template_instant_of<std::basic_string_view, T >
+        {};
+
+        template<class T>
+        struct is_stdarray :std::is_array<T> {};
+        template<class T, std::size_t N>
+        struct is_stdarray<std::array<T, N>> :std::true_type {};
+        // optional:
+        template<class T>
+        struct is_stdarray<T const> :is_stdarray<T> {};
+        template<class T>
+        struct is_stdarray<T volatile> :is_stdarray<T> {};
+        template<class T>
+        struct is_stdarray<T volatile const> :is_stdarray<T> {};
+
+
         // Helpers
     public:
+        template< typename Head, class... Tail>
+        static size_t GetBatchDataSize(Head&& value, Tail&&... tail)  noexcept
+        {
+            if constexpr (sizeof...(tail) > 0)
+            {
+                //return  (GetBatchDataSize(value) + ... + GetBatchDataSize(tail));
+                return GetBatchDataSize(value) + GetBatchDataSize(tail...);
+            }
+            else
+            {
+
+                if constexpr (std::is_integral_v<std::remove_cvref_t<Head>>)
+                {
+                    return sizeof(value);
+                }
+                else if constexpr (std::is_array<std::remove_cvref_t<Head>>::value)
+                {
+                    return   std::extent<std::remove_cvref_t<Head>>::value;
+                }
+                else if constexpr (is_stdarray<std::remove_cvref_t<Head>>::value)
+                {
+                    return  value.size();
+                }
+                else if constexpr (is_stdstring<std::remove_cvref_t<Head>>::value)
+                {
+                    return  4 + value.size();
+                }
+                else if constexpr (is_stdstringview<std::remove_cvref_t<Head>>::value)
+                {
+                    return  4 + value.size();
+                }
+                else
+                {
+                    static_assert(0, "error type");
+                }
+            }
+        }
+
         std::string ToString() const
         {
             return std::string(Data(), Size());
