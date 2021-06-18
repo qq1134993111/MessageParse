@@ -211,6 +211,14 @@ namespace mp
             write_index_ += len;
         }
 
+        void Write(std::string_view sv)
+        {
+            EnsureWritableBytes(sv.size());
+            memcpy(WritePtr(), sv.data(), sv.size());
+            assert(write_index_ + sv.size() <= capacity_);
+            write_index_ += sv.size();
+        }
+
         template<size_t N>
         void Write(const std::array<char, N>& array)
         {
@@ -273,7 +281,19 @@ namespace mp
             const char* p = static_cast<const char*>(buf);
             memcpy(Begin() + read_index_, p, len);
         }
+        
+        // Insert content, specified by the parameter, into the front of reading index
+        bool WriteFront(std::string_view sv)  noexcept
+        {
+            if (FrontWriteableBytes() < sv.size())
+            {
+                return false;
+            }
 
+            read_index_ -= sv.size();
+       
+            memcpy(Begin() + read_index_, sv.data(),sv.size());
+        }
         template<size_t N>
         void WriteFront(const std::array<char, N>& array)
         {
