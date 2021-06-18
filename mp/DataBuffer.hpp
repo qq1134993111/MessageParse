@@ -264,7 +264,7 @@ namespace mp
         // Insert content, specified by the parameter, into the front of reading index
         bool WriteFront(const void* buf, size_t len)  noexcept
         {
-            if (len <= FrontWriteableBytes())
+            if (FrontWriteableBytes() < len)
             {
                 return false;
             }
@@ -474,4 +474,5 @@ namespace mp
         size_t reserved_prepend_size_;
         static constexpr char kCRLF[] = "\r\n";
     };
+
 }
