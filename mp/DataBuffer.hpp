@@ -4,78 +4,365 @@
 #include<string.h>
 #include<exception>
 #include<assert.h>
+#include <algorithm>
+#include <string>
+#include <string_view>
 #include"EndianConversion.hpp"
 
 namespace mp
 {
-
-    class DataBuffer
+    class  DataBuffer
     {
     public:
-        DataBuffer(size_t capacity = 128) :capacity_(capacity), bufeer_(nullptr)
+        enum  ByteOrderEndian
         {
-            Clear();
-            ExtendTo(capacity_);
+            kNative = 0,
+            kLittle = 1,
+            kBig = 2
+        };
+
+        static const size_t kCheapPrependSize = 8;
+        static const size_t kInitialSize = 256;
+
+        explicit DataBuffer(size_t initial_size = kInitialSize, size_t reserved_prepend_size = kCheapPrependSize)
+            : capacity_(reserved_prepend_size + initial_size)
+            , read_index_(reserved_prepend_size)
+            , write_index_(reserved_prepend_size)
+            , reserved_prepend_size_(reserved_prepend_size)
+        {
+            buffer_ = new char[capacity_];
+            assert(Size() == 0);
+            assert(WritableBytes() == initial_size);
+            assert(FrontWriteableBytes() == reserved_prepend_size);
         }
 
-        DataBuffer(uint8_t* data, size_t size) :capacity_(size), bufeer_(nullptr)
+        explicit DataBuffer(const void* data, size_t size, size_t reserved_prepend_size = 0)
+            : capacity_(reserved_prepend_size + size)
+            , read_index_(reserved_prepend_size)
+            , write_index_(reserved_prepend_size + size)
+            , reserved_prepend_size_(reserved_prepend_size)
         {
-            Clear();
-            ExtendTo(capacity_);
-            Write(data, size);
+            buffer_ = new char[capacity_];
+            assert(Size() == size);
+            assert(WritableBytes() == 0);
+            assert(FrontWriteableBytes() == reserved_prepend_size);
         }
 
-        DataBuffer(const DataBuffer& rhs) = delete;
-        DataBuffer(const DataBuffer&& rhs) = delete;
-        DataBuffer& operator=(const DataBuffer& rhs) = delete;
-        DataBuffer&& operator=(const DataBuffer&& rhs) = delete;
+        ~DataBuffer()
+        {
+            delete[] buffer_;
+            buffer_ = nullptr;
+            capacity_ = 0;
+        }
 
+        void Swap(DataBuffer& rhs)
+        {
+            std::swap(buffer_, rhs.buffer_);
+            std::swap(capacity_, rhs.capacity_);
+            std::swap(read_index_, rhs.read_index_);
+            std::swap(write_index_, rhs.write_index_);
+            std::swap(reserved_prepend_size_, rhs.reserved_prepend_size_);
+        }
+
+        //read ptr
+        char* Data()  noexcept
+        {
+            return buffer_ + read_index_;
+        }
+
+        const char* Data() const noexcept
+        {
+            return buffer_ + read_index_;
+        }
+
+        //readabe size
+        size_t Size() const noexcept
+        {
+            assert(write_index_ >= read_index_);
+            return write_index_ - read_index_;
+        }
+
+        //write ptr
+        char* WritePtr() noexcept
+        {
+            return Begin() + write_index_;
+        }
+
+        const char* WritePtr() const noexcept
+        {
+            return Begin() + write_index_;
+        }
+
+        size_t WritableBytes() const noexcept
+        {
+            assert(capacity_ >= write_index_);
+            return capacity_ - write_index_;
+        }
+
+        size_t FrontWriteableBytes() const noexcept
+        {
+            return read_index_;
+        }
+
+        size_t Capacity() const noexcept
+        {
+            return capacity_;
+        }
+
+        // Reset resets the buffer to be empty,
+        // but it retains the underlying storage for use by future writes.
+        // Reset is the same as Truncate(0).
+        void Reset() noexcept
+        {
+            Truncate(0);
+        }
+
+        // Truncate discards all but the first n unread bytes from the buffer
+        // but continues to use the same allocated storage.
+        // It does nothing if n is greater than the length of the buffer.
+        void Truncate(size_t n) noexcept
+        {
+            if (n == 0)
+            {
+                read_index_ = reserved_prepend_size_;
+                write_index_ = reserved_prepend_size_;
+            }
+            else if (write_index_ > read_index_ + n)
+            {
+                write_index_ = read_index_ + n;
+            }
+        }
+
+        void Reserve(size_t len)
+        {
+            if (capacity_ >= len + reserved_prepend_size_)
+            {
+                return;
+            }
+
+            Grow(len + reserved_prepend_size_);
+        }
+
+        void Shrink(size_t reserve = 0)
+        {
+            DataBuffer other(Size() + reserve);
+            other.Write(Data(), Size());
+            Swap(other);
+        }
+
+        void Commit(size_t n) noexcept
+        {
+            assert(n <= WritableBytes());
+            if (n <= WritableBytes())
+            {
+                write_index_ += n;
+            }
+            else
+            {
+                write_index_ = capacity_;
+            }
+        }
+
+        void Rever(size_t n)  noexcept
+        {
+            assert(n <= Size());
+            if (write_index_ >= n)
+            {
+                write_index_ -= n;
+            }
+        }
+
+        void Consume(std::size_t n) noexcept
+        {
+            if (n <= Size())
+            {
+                read_index_ += n;
+            }
+            else
+            {
+                Reset();
+            }
+        }
+
+        std::string_view Prepare(std::size_t n)
+        {
+            EnsureWritableBytes(n);
+            return std::string_view(WritePtr(), n);
+        }
+
+        void Adjustment()
+        {
+            if (read_index_ > reserved_prepend_size_)
+            {
+                auto data_size = Size();
+                memmove(Begin() + reserved_prepend_size_, Data(), data_size);
+                read_index_ = reserved_prepend_size_;
+                write_index_ = read_index_ + data_size;
+            }
+        }
+        // Write
+    public:
 
         void Write(const void* buf, size_t len)
         {
             EnsureWritableBytes(len);
-
-            if (buf != nullptr)
-            {
-                memcpy(bufeer_ + w_pos_, buf, len);
-            }
-
-            w_pos_ += len;
+            memcpy(WritePtr(), buf, len);
+            assert(write_index_ + len <= capacity_);
+            write_index_ += len;
         }
 
-        void Read(void* buf, size_t len)
+        template<size_t N>
+        void Write(const std::array<char, N>& array)
         {
-            if (ReadableBytes() < len)
-            {
-                char sz_info[127] = { 0 };
-                snprintf(sz_info, sizeof(sz_info) - 1, "DataBuffer Read exception:r_pos+len>w_pos,%d+%d>%d", r_pos_, len, w_pos_);
-                throw std::runtime_error(sz_info);
-            }
-
-            if (buf != nullptr)
-                memcpy(buf, GetReadPtr(), len);
-
-            r_pos_ += len;
+            Write(array.data(), N);
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0 >
+        template<size_t N>
+        void Write(const char(&array)[N])
+        {
+            Write(array, N);
+        }
+
+        template<ByteOrderEndian endian = ByteOrderEndian::kNative, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
         void Write(T value)
         {
-            Write(&value, sizeof(value));
+            if constexpr (endian == ByteOrderEndian::kNative)
+            {
+                Write(&value, sizeof(value));
+            }
+            else if constexpr (endian == ByteOrderEndian::kLittle)
+            {
+                WriteIntegerLE(value);
+            }
+            else if constexpr (endian == ByteOrderEndian::kBig)
+            {
+                WriteIntegerBE(value);
+            }
+            else
+            {
+                static_assert(0, "endian error");
+            }
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0 >
-        void Read(T& value)
-        {
-            Read(&value, sizeof(value));
-        }
 
-        template<typename T>
+        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
         void WriteIntegerLE(T value)
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
             value = endian::htole(value);
             Write(&value, sizeof(value));
+        }
+
+        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        void WriteIntegerBE(T value)
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+            value = endian::htobe(value);
+            Write(&value, sizeof(value));
+        }
+
+        // Insert content, specified by the parameter, into the front of reading index
+        bool WriteFront(const void* buf, size_t len)  noexcept
+        {
+            if (len <= FrontWriteableBytes())
+            {
+                return false;
+            }
+
+            read_index_ -= len;
+            const char* p = static_cast<const char*>(buf);
+            memcpy(Begin() + read_index_, p, len);
+        }
+
+        template<size_t N>
+        void WriteFront(const std::array<char, N>& array)
+        {
+            WriteFront(array.data(), N);
+        }
+
+        template<size_t N>
+        void WriteFront(const char(&array)[N])
+        {
+            WriteFront(array, N);
+        }
+
+        template<ByteOrderEndian endian = ByteOrderEndian::kNative, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        void WriteFront(T value)
+        {
+            if constexpr (endian == ByteOrderEndian::kNative)
+            {
+                WriteFront(&value, sizeof(value));
+            }
+            else if constexpr (endian == ByteOrderEndian::kLittle)
+            {
+                value = endian::htole(value);
+                WriteFront(&value, sizeof(value));
+            }
+            else if constexpr (endian == ByteOrderEndian::kBig)
+            {
+                value = endian::htobe(value);
+                WriteFront(value);
+            }
+            else
+            {
+                static_assert(0, "endian error");
+            }
+        }
+
+        //Read
+    public:
+        bool Peek(void* buf, size_t len)  noexcept
+        {
+            if (Size() < len)
+            {
+                return false;
+            }
+
+            memcpy(buf, Data(), len);
+        }
+
+        bool Read(void* buf, size_t len)  noexcept
+        {
+            if (Peek(buf, len))
+            {
+                Consume(len);
+                return true;
+            }
+
+            return false;
+        }
+
+        template<size_t N>
+        void Read(const std::array<char, N>& array)
+        {
+            Read(array.data(), N);
+        }
+
+        template<size_t N>
+        void Read(const char(&array)[N])
+        {
+            Read(array, N);
+        }
+
+        template<ByteOrderEndian endian = ByteOrderEndian::kNative, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0 >
+        void Read(T& value)
+        {
+            if constexpr (endian == ByteOrderEndian::kNative)
+            {
+                Read(&value, sizeof(value));
+            }
+            else if constexpr (endian == ByteOrderEndian::kLittle)
+            {
+                ReadIntegerLE(value);
+            }
+            else if constexpr (endian == ByteOrderEndian::kBig)
+            {
+                ReadIntegerBE(value);
+            }
+            else
+            {
+                static_assert(0, "endian error");
+            }
         }
 
         template<typename T>
@@ -87,14 +374,6 @@ namespace mp
         }
 
         template<typename T>
-        void WriteIntegerBE(T value)
-        {
-            static_assert(std::is_integral<T>::value, "must be Integer .");
-            value = endian::htobe(value);
-            Write(&value, sizeof(value));
-        }
-
-        template<typename T>
         void ReadIntegerBE(T& value)
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
@@ -102,197 +381,53 @@ namespace mp
             value = endian::betoh(value);
         }
 
-        template<size_t N>
-        void WriteArray(const std::array<char, N>& array)
+        // Helpers
+    public:
+        std::string ToString() const
         {
-            Write(array.data(), N);
+            return std::string(Data(), Size());
         }
 
-        template<size_t N>
-        void ReadArray(std::array<char, N>& array)
+        const char* FindCRLF() const  noexcept
         {
-            Read(array.data(), N);
+            const char* crlf = std::search(Data(), WritePtr(), kCRLF, kCRLF + 2);
+            return crlf == WritePtr() ? nullptr : crlf;
         }
 
-        uint8_t* Data() const { return GetReadPtr(); }
-        size_t GetDataSize() const
+        const char* FindCRLF(const char* start) const  noexcept
         {
-            return ReadableBytes();
+            assert(Data() <= start);
+            assert(start <= WritePtr());
+            const char* crlf = std::search(start, WritePtr(), kCRLF, kCRLF + 2);
+            return crlf == WritePtr() ? nullptr : crlf;
         }
 
-        uint8_t* GetWritePtr()  const
+        const char* FindEOL() const  noexcept
         {
-            return bufeer_ + w_pos_;
+            const void* eol = memchr(Data(), '\n', Size());
+            return static_cast<const char*>(eol);
         }
 
-        size_t WritableBytes() const
+        const char* FindEOL(const char* start) const  noexcept
         {
-            assert(capacity_ >= w_pos_);
-            return capacity_ - w_pos_;
+            assert(Data() <= start);
+            assert(start <= WritePtr());
+            const void* eol = memchr(start, '\n', WritePtr() - start);
+            return static_cast<const char*>(eol);
+        }
+    private:
+
+        char* Begin() noexcept
+        {
+            return buffer_;
         }
 
-        size_t GetCapacitySize() const
+        const char* Begin() const noexcept
         {
-            return capacity_;
+            return buffer_;
         }
 
-        void SetCapacitySize(size_t size)
-        {
-            Adjustment();
-            ExtendTo(size);
-            capacity_ = size;
-
-            if (w_pos_ > size)
-                w_pos_ = size;
-            if (r_pos_ > size)
-                r_pos_ = size;
-        }
-
-        void Shrink()
-        {
-            Adjustment();
-            size_t data_size = GetDataSize();
-            ExtendTo(data_size);
-            capacity_ = data_size;
-        }
-
-        void Clear()
-        {
-            r_pos_ = 0;
-            w_pos_ = 0;
-        }
-
-        void Adjustment()
-        {
-            if (r_pos_ != 0)
-            {
-                size_t data_len = ReadableBytes();
-                memmove(bufeer_, GetReadPtr(), data_len);
-                w_pos_ -= data_len;
-                r_pos_ = 0;
-            }
-        }
-
-    protected:
-        uint8_t* GetReadPtr()  const
-        {
-            return bufeer_ + r_pos_;
-        }
-
-        uint8_t* ReadSkip(int64_t n)
-        {
-            if (n >= 0)
-            {
-                if (r_pos_ + n <= GetCapacitySize())
-                {
-                    r_pos_ += n;
-                }
-                else
-                {
-                    char sz_info[127] = { 0 };
-                    snprintf(sz_info, sizeof(sz_info) - 1, "DataBuffer ReadSkip exception , r_pos_[%lld],n[%lld],capacity_[%lld]", r_pos_, n, capacity_);
-                    throw std::runtime_error(sz_info);
-                }
-            }
-            else
-            {
-                if (r_pos_ - n >= 0)
-                {
-                    r_pos_ -= n;
-                }
-                else
-                {
-                    char sz_info[127] = { 0 };
-                    snprintf(sz_info, sizeof(sz_info) - 1, "DataBuffer ReadSkip exception , r_pos_[%lld],n[%lld],capacity_[%lld]", r_pos_, n, capacity_);
-                    throw std::runtime_error(sz_info);
-                }
-            }
-
-            return GetReadPtr();
-        }
-
-        uint8_t* WriteSkip(int64_t n)
-        {
-            if (n >= 0)
-            {
-                if (w_pos_ + n <= GetCapacitySize())
-                {
-                    w_pos_ += n;
-                }
-                else
-                {
-                    char sz_info[127] = { 0 };
-                    snprintf(sz_info, sizeof(sz_info) - 1, "DataBuffer WriteSkip exception , r_pos_[%lld],n[%lld],capacity_[%lld]", w_pos_, n, capacity_);
-                    throw std::runtime_error(sz_info);
-                }
-            }
-            else
-            {
-                if (w_pos_ - n >= 0)
-                {
-                    w_pos_ -= n;
-                }
-                else
-                {
-                    char sz_info[127] = { 0 };
-                    snprintf(sz_info, sizeof(sz_info) - 1, "DataBuffer WriteSkip exception , r_pos_[%lld],n[%lld],capacity_[%lld]", w_pos_, n, capacity_);
-                    throw std::runtime_error(sz_info);
-                }
-            }
-
-            return GetWritePtr();
-        }
-
-        size_t ReadableBytes() const
-        {
-            assert(w_pos_ >= r_pos_);
-            return  w_pos_ - r_pos_;
-        }
-
-    protected:
-        void ExtendTo(size_t len)
-        {
-            uint8_t* new_buf = static_cast<uint8_t*>(realloc(bufeer_, len));
-            if (new_buf != nullptr)
-            {
-                bufeer_ = new_buf;
-            }
-            else
-            {
-                char sz_info[127] = { 0 };
-                snprintf(sz_info, sizeof(sz_info) - 1, "DataBuffer malloc exception: Memory allocation %d bytes failure", len);
-                throw std::runtime_error(sz_info);
-            }
-        }
-
-        void Free()
-        {
-            if (bufeer_ != nullptr)
-            {
-                free(bufeer_);
-                bufeer_ = nullptr;
-                capacity_ = 0;
-                w_pos_ = 0;
-                r_pos_ = 0;
-            }
-        }
-
-        void Grow(size_t len)
-        {
-            if (WritableBytes() + PrependableBytes() < len)
-            {
-                //grow the capacity
-                size_t n = (capacity_ << 1) + len;
-                ExtendTo(n);
-                capacity_ = n;
-            }
-            else
-            {
-                Adjustment();
-                assert(WritableBytes() >= len);
-            }
-        }
-
+        // Make sure there is enough memory space to append more data with length len
         void EnsureWritableBytes(size_t len)
         {
             if (WritableBytes() < len)
@@ -303,15 +438,40 @@ namespace mp
             assert(WritableBytes() >= len);
         }
 
-        size_t PrependableBytes() const
+        void Grow(size_t len)
         {
-            return r_pos_;
+            if (WritableBytes() + FrontWriteableBytes() < len + reserved_prepend_size_)
+            {
+                //grow the capacity
+                size_t n = (capacity_ << 1) + len;
+                size_t data_size = Size();
+                char* d = new char[n];
+                memcpy(d + reserved_prepend_size_, Data(), data_size);
+                write_index_ = data_size + reserved_prepend_size_;
+                read_index_ = reserved_prepend_size_;
+                capacity_ = n;
+                delete[] buffer_;
+                buffer_ = d;
+            }
+            else
+            {
+                // move readable data to the front, make space inside buffer
+                assert(reserved_prepend_size_ < read_index_);
+                size_t readable = Size();
+                memmove(Begin() + reserved_prepend_size_, Data(), Size());
+                read_index_ = reserved_prepend_size_;
+                write_index_ = read_index_ + readable;
+                assert(readable == Size());
+                assert(WritableBytes() >= len);
+            }
         }
-    private:
-        size_t capacity_;//申请的空间大小
-        uint8_t* bufeer_;//数据指针
-        size_t r_pos_;//读位置
-        size_t w_pos_;//写位置
-    };
 
+    private:
+        char* buffer_;
+        size_t capacity_;
+        size_t read_index_;
+        size_t write_index_;
+        size_t reserved_prepend_size_;
+        static constexpr char kCRLF[] = "\r\n";
+    };
 }

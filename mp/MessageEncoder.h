@@ -19,26 +19,14 @@ namespace mp
         template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0 >
         ErrorCode Write(T value)
         {
-            try
+
+            if (host_to_network_byte_order_)
             {
-                if (host_to_network_byte_order_)
-                {
-                    data_buffer_.WriteIntegerBE(value);
-                }
-                else
-                {
-                    data_buffer_.Write(value);
-                }
+                data_buffer_.Write<DataBuffer::kBig>(value);
             }
-            catch (std::exception& e)
+            else
             {
-                std::cout << "MessageDecoder Write exception : " << e.what() << "\n";
-                return ErrorCode::kWritError;
-            }
-            catch (...)
-            {
-                std::cout << "MessageDecoder Write unkown exception \n";
-                return ErrorCode::kWritError;
+                data_buffer_.Write(value);
             }
 
             return ErrorCode::kSuccess;
@@ -57,20 +45,9 @@ namespace mp
 
         ErrorCode Write(const char* p, uint32_t size)
         {
-            try
-            {
-                data_buffer_.Write(p, size);
-            }
-            catch (std::exception& e)
-            {
-                std::cout << "MessageDecoder Write exception : " << e.what() << "\n";
-                return ErrorCode::kWritError;
-            }
-            catch (...)
-            {
-                std::cout << "MessageDecoder Write unkown exception \n";
-                return ErrorCode::kWritError;
-            }
+
+            data_buffer_.Write(p, size);
+
             return ErrorCode::kSuccess;
         }
     private:

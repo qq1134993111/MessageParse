@@ -19,29 +19,14 @@ namespace mp
         template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0 >
         ErrorCode Read(T& value)
         {
-            try
+            if (host_to_network_byte_order_)
             {
-                if (host_to_network_byte_order_)
-                {
-                    data_buffer_.ReadIntegerBE(value);
-                }
-                else
-                {
-                    data_buffer_.Read(value);
-                }
+                return data_buffer_.Read<DataBuffer::kBig>(value) ? ErrorCode::kSuccess : ErrorCode::kReadError;
             }
-            catch (std::exception& e)
+            else
             {
-                std::cout << "MessageDecoder Read exception : " << e.what() << "\n";
-                return ErrorCode::kReadError;
+                return data_buffer_.Read(value) ? ErrorCode::kSuccess : ErrorCode::kReadError;
             }
-            catch (...)
-            {
-                std::cout << "MessageDecoder Read unkown exception \n";
-                return ErrorCode::kReadError;
-            }
-
-            return ErrorCode::kSuccess;
         }
 
         template<std::size_t N>
@@ -57,21 +42,8 @@ namespace mp
 
         ErrorCode Read(char* p, uint32_t size)
         {
-            try
-            {
-                data_buffer_.Read(p, size);
-            }
-            catch (std::exception& e)
-            {
-                std::cout << "MessageDecoder Read exception : " << e.what() << "\n";
-                return ErrorCode::kReadError;
-            }
-            catch (...)
-            {
-                std::cout << "MessageDecoder Read unkown exception \n";
-                return ErrorCode::kReadError;
-            }
-            return ErrorCode::kSuccess;
+
+            return data_buffer_.Read(p, size) ? ErrorCode::kSuccess : ErrorCode::kReadError;
         }
 
     private:
