@@ -269,6 +269,28 @@ namespace mp
             Write(&value, sizeof(value));
         }
 
+        template<ByteOrderEndian endian = ByteOrderEndian::kNative, class T, class... ARGS>
+        void WriteBatch(T&& value, ARGS&&... args)  noexcept
+        {
+            if constexpr (sizeof...(args) > 0)
+            {
+                return  (WriteBatch<endian>(args), ...);//fold
+            }
+            else
+            {
+
+                if constexpr (std::is_integral_v<std::remove_cvref_t<T>>)
+                {
+                    return Write<endian>(value);
+                }
+                else
+                {
+                    return Write(value);
+
+                }
+            }
+        }
+
         // Insert content, specified by the parameter, into the front of reading index
         bool WriteFront(const void* buf, size_t len)  noexcept
         {
@@ -280,8 +302,9 @@ namespace mp
             read_index_ -= len;
             const char* p = static_cast<const char*>(buf);
             memcpy(Begin() + read_index_, p, len);
+            return true;
         }
-        
+
         // Insert content, specified by the parameter, into the front of reading index
         bool WriteFront(std::string_view sv)  noexcept
         {
@@ -291,43 +314,78 @@ namespace mp
             }
 
             read_index_ -= sv.size();
-       
-            memcpy(Begin() + read_index_, sv.data(),sv.size());
+
+            memcpy(Begin() + read_index_, sv.data(), sv.size());
+
+            return true;
         }
         template<size_t N>
-        void WriteFront(const std::array<char, N>& array)
+        bool WriteFront(const std::array<char, N>& array)  noexcept
         {
-            WriteFront(array.data(), N);
+            return WriteFront(array.data(), N);
         }
 
         template<size_t N>
-        void WriteFront(const char(&array)[N])
+        bool WriteFront(const char(&array)[N])    noexcept
         {
-            WriteFront(array, N);
+            return WriteFront(array, N);
         }
 
         template<ByteOrderEndian endian = ByteOrderEndian::kNative, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
-        void WriteFront(T value)
+        bool WriteFront(T value)   noexcept
         {
             if constexpr (endian == ByteOrderEndian::kNative)
             {
-                WriteFront(&value, sizeof(value));
+                return WriteFront(&value, sizeof(value));
             }
             else if constexpr (endian == ByteOrderEndian::kLittle)
             {
                 value = endian::htole(value);
-                WriteFront(&value, sizeof(value));
+                return WriteFront(&value, sizeof(value));
             }
             else if constexpr (endian == ByteOrderEndian::kBig)
             {
                 value = endian::htobe(value);
-                WriteFront(value);
+                return WriteFront(value);
             }
             else
             {
                 static_assert(0, "endian error");
             }
+            return false;
         }
+
+        template<ByteOrderEndian endian = ByteOrderEndian::kNative, typename Head, class... Tail>
+        bool WriteFrontBatch(Head&& value, Tail&&... tail)  noexcept
+        {
+            if constexpr (sizeof...(tail) > 0)
+            {
+                if constexpr (std::is_integral_v<std::remove_cvref_t<Head>>)
+                {
+                    return WriteFrontBatch<endian>(tail...) && WriteFront<endian>(value);
+                }
+                else
+                {
+                    return WriteFrontBatch<endian>(tail...) && WriteFront(value);
+
+                }
+            }
+            else
+            {
+                if constexpr (std::is_integral_v<std::remove_cvref_t<Head>>)
+                {
+                    return WriteFront<endian>(value);
+                }
+                else
+                {
+                    return WriteFront(value);
+
+                }
+            }
+            return false;
+        }
+
+
 
         //Read
     public:
@@ -339,6 +397,8 @@ namespace mp
             }
 
             memcpy(buf, Data(), len);
+
+            return true;
         }
 
         bool Read(void* buf, size_t len)  noexcept
