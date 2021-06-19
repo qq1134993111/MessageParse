@@ -357,17 +357,20 @@ namespace mp
 
 
 
-        template<ByteOrderEndian endian = ByteOrderEndian::kNative, typename Head, class... Tail>
+        template<ByteOrderEndian endian = ByteOrderEndian::kNative,bool CheckSize=true, typename Head, class... Tail>
         bool WriteFrontBatch(Head&& value, Tail&&... tail)  noexcept
         {
-            if (FrontWriteableBytes() < GetBatchDataSize(value, tail...))
+            if (CheckSize)
             {
-                return false;
+                if (FrontWriteableBytes() < GetBatchDataSize(value, tail...))
+                {
+                    return false;
+                }
             }
 
             if constexpr (sizeof...(tail) > 0)
             {
-                return WriteFrontBatch<endian>(tail...) && WriteFrontBatch<endian>(value);
+                return WriteFrontBatch<endian,false>(tail...) && WriteFrontBatch<endian,false>(value);
             }
             else
             {
@@ -486,7 +489,11 @@ namespace mp
         template<class T>
         struct is_stdarray<T volatile const> :is_stdarray<T> {};
 
-
+        template <typename... Args, typename Func, std::size_t... Idx>
+        inline bool ForEachRight(const std::tuple<Args...>& t, Func&& f, std::index_sequence<Idx...>) 
+        {
+            return (...&&f(std::get<Idx>(t)));
+        }
         // Helpers
     public:
         template< typename Head, class... Tail>
@@ -514,15 +521,17 @@ namespace mp
                 }
                 else if constexpr (is_stdstring<std::remove_cvref_t<Head>>::value)
                 {
-                    return  4 + value.size();
+                    static_assert(0, "Unsupported type std::string");
+                    //return  4 + value.size();
                 }
                 else if constexpr (is_stdstringview<std::remove_cvref_t<Head>>::value)
                 {
-                    return  4 + value.size();
+                    static_assert(0, "Unsupported type std::string_view");
+                    //return  4 + value.size();
                 }
                 else
                 {
-                    static_assert(0, "error type");
+                    static_assert(0, "Unsupported type");
                 }
             }
         }
