@@ -494,6 +494,14 @@ namespace mp
         {
             return (...&&f(std::get<Idx>(t)));
         }
+
+        template <typename... Args, typename F, std::size_t... Idx>
+        constexpr bool for_each(const std::tuple<Args...>& t, F&& f, std::index_sequence<Idx...>)
+        {
+            //std::cout << "size:" << sizeof...(Idx) << "\n";
+         
+            return (...&std::forward<F>(f)(std::get<Idx>(t)));
+        }
         // Helpers
     public:
         template< typename Head, class... Tail>
