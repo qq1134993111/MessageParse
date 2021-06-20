@@ -369,7 +369,7 @@ namespace mp
 
 
 
-        template<ByteOrderEndian endian = ByteOrderEndian::kNative,bool CheckSize=true, typename Head, class... Tail>
+        template<ByteOrderEndian endian = ByteOrderEndian::kNative, bool CheckSize = true, typename Head, class... Tail>
         bool WriteFrontBatch(Head&& value, Tail&&... tail)  noexcept
         {
             if (CheckSize)
@@ -382,7 +382,7 @@ namespace mp
 
             if constexpr (sizeof...(tail) > 0)
             {
-                return WriteFrontBatch<endian,false>(tail...) && WriteFrontBatch<endian,false>(value);
+                return WriteFrontBatch<endian, false>(tail...) && WriteFrontBatch<endian, false>(value);
             }
             else
             {
@@ -443,15 +443,15 @@ namespace mp
         {
             if constexpr (endian == ByteOrderEndian::kNative)
             {
-               return Read(&value, sizeof(value));
+                return Read(&value, sizeof(value));
             }
             else if constexpr (endian == ByteOrderEndian::kLittle)
             {
-               return ReadIntegerLE(value);
+                return ReadIntegerLE(value);
             }
             else if constexpr (endian == ByteOrderEndian::kBig)
             {
-               return ReadIntegerBE(value);
+                return ReadIntegerBE(value);
             }
             else
             {
@@ -470,7 +470,7 @@ namespace mp
             }
 
             return false;
-           
+
         }
 
         template<typename T>
@@ -512,7 +512,7 @@ namespace mp
         struct is_stdarray<T volatile const> :is_stdarray<T> {};
 
         template <typename... Args, typename Func, std::size_t... Idx>
-        inline bool ForEachRight(const std::tuple<Args...>& t, Func&& f, std::index_sequence<Idx...>) 
+        inline bool ForEachRight(const std::tuple<Args...>& t, Func&& f, std::index_sequence<Idx...>)
         {
             return (...&&f(std::get<Idx>(t)));
         }
@@ -521,7 +521,7 @@ namespace mp
         constexpr bool for_each(const std::tuple<Args...>& t, F&& f, std::index_sequence<Idx...>)
         {
             //std::cout << "size:" << sizeof...(Idx) << "\n";
-         
+
             return (...&std::forward<F>(f)(std::get<Idx>(t)));
         }
         // Helpers

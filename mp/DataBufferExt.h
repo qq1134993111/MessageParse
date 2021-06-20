@@ -401,3 +401,55 @@ namespace mp
         return size;
     }
 }
+
+/*
+void Test()
+{
+    mp::DataBuffer buf(10, 128);
+    int32_t i32 = 32;
+    int16_t i16 = 16;
+    int8_t i8 = 8;
+    std::array<char, 10> array1;
+    array1.fill('x');
+    char array2[2] = { 'A','B' };
+    std::string str = "hello";
+
+    auto size = mp::GetBatchWriteDataSize(i32, i16, i8, array1, array2, str);
+    auto b = mp::BatchWriteFront(buf, i32, i16, i8, array1, array2, str);
+    assert(b);
+    int32_t ii32 = 0;
+    int16_t ii16 = 0;
+    int8_t ii8 = 0;
+    std::array<char, 10> array11;
+    char array22[2] = {  };
+    std::string str2;
+
+    auto n = mp::GetBatchReadDataSize(buf, ii32, ii16, ii8, array11, array22, str2);
+    assert(n == size);
+
+    auto ptr = buf.Data();
+    mp::BatchRead(buf, ii32, ii16, ii8, array11, array22, str2);
+    assert(buf.Data() - ptr == n);
+
+    mp::tmp::TupleForeachReverse([](auto& v)
+        {
+            std::cout << v << "\n";
+        }, std::make_tuple(ii32, ii16, ii8, str2));
+
+    mp::tmp::TupleForeach([](auto& v)
+        {
+            std::cout << v << "\n";
+        }, std::make_tuple(ii32, ii16, ii8, str2));
+
+    int i = 0;
+    mp::tmp::TupleForeachReverseWithReturnBool([&i](auto& v)
+        {
+            if (i++ > 0)
+            {
+                return false;
+            }
+            std::cout << v << "\n";
+            return true;
+        }, std::make_tuple(ii32, ii16, ii8, str2));
+}
+*/
