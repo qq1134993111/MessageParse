@@ -366,7 +366,7 @@ namespace mp
             }
             else if constexpr (tmp::is_stdarray<HeadType>::value)
             {
-                size_t n = value.size();
+                constexpr size_t n = std::tuple_size<HeadType>{};
                 if (buffer.Size() >= n)
                 {
                     buffer.Consume(n);
@@ -400,10 +400,138 @@ namespace mp
 
         return size;
     }
+
+    template<DataBuffer::ByteOrderEndian endian = DataBuffer::ByteOrderEndian::kNative, class... Types>
+    struct BatchReadDataSize
+    {
+        bool operator()(DataBuffer& buffer, size_t& already_read_size) const
+        {
+            return true;
+        }
+    };
+
+    template<DataBuffer::ByteOrderEndian endian, class Type>
+    struct BatchReadDataSize<endian, Type>
+    {
+        bool operator()(DataBuffer& buffer, size_t& already_read_size) const
+        {
+            using RealType = std::remove_cvref_t<Type>;
+            if constexpr (std::is_integral_v<RealType>)
+            {
+                constexpr size_t n = sizeof(RealType);
+                if (buffer.Size() >= n)
+                {
+                    already_read_size += n;
+                    buffer.Consume(n);
+                    return true;
+                }
+
+                return false;
+            }
+            else if constexpr (tmp::is_stdstring<RealType>::value)
+            {
+                int32_t prefix_size = 0;
+                if (!buffer.Read<endian>(prefix_size))
+                {
+                    return false;
+                }
+
+                already_read_size += sizeof(prefix_size);
+
+                if (buffer.Size() < prefix_size)
+                {
+                    return false;
+                }
+
+                already_read_size += prefix_size;
+
+                buffer.Consume(prefix_size);
+                return true;
+            }
+            /*else if constexpr (tmp::is_stdstringview<RealType>::value)
+            {
+                int32_t prefix_size = 0;
+                if (!buffer.Read(prefix_size))
+                {
+                    return false;
+                }
+
+                already_read_size += sizeof(prefix_size);
+
+                if (prefix_size != value.size())
+                {
+                    return false;
+                }
+
+                already_read_size += prefix_size;
+
+                buffer.Consume(prefix_size);
+
+                return true;
+
+            }*/
+            else if constexpr (std::is_array<RealType>::value)
+            {
+                constexpr size_t n = std::extent<std::remove_cvref_t<RealType>>::value;
+                if (buffer.Size() >= n)
+                {
+                    buffer.Consume(n);
+                    already_read_size += n;
+                    return true;
+                }
+
+                return false;
+            }
+            else if constexpr (tmp::is_stdarray<RealType>::value)
+            {
+                constexpr size_t n = std::tuple_size<RealType>{};
+
+                if (buffer.Size() >= n)
+                {
+                    buffer.Consume(n);
+                    already_read_size += n;
+                    return true;
+                }
+
+                return false;
+            }
+            else
+            {
+                static_assert(0, "Unsupported type");
+            }
+        }
+    };
+
+    template<DataBuffer::ByteOrderEndian endian, class Head, class... Tail>
+    struct BatchReadDataSize<endian, Head, Tail...>
+    {
+        bool operator()(DataBuffer& buffer, size_t& already_read_size) const
+        {
+            return BatchReadDataSize<endian, Head>{}(buffer, already_read_size) && BatchReadDataSize<endian, Tail...>{}(buffer, already_read_size);
+        }
+    };
+
+    template<DataBuffer::ByteOrderEndian endian = DataBuffer::ByteOrderEndian::kNative, class... Types>
+    size_t GetBatchReadDataSize(DataBuffer& buffer)  noexcept
+    {
+        auto ptr = buffer.Data();
+        size_t size = 0;
+        if (!BatchReadDataSize<endian, Types...>{}(buffer, size))
+        {
+            assert(buffer.Data() - ptr == size);
+            buffer.UnConsume(size);
+            return 0;
+        }
+
+        assert(buffer.Data() - ptr == size);
+        buffer.UnConsume(size);
+
+        return size;
+    }
+
 }
 
-/*
-void Test()
+inline void DataBufferTest()
 {
     mp::DataBuffer buf(10, 128);
     int32_t i32 = 32;
@@ -426,6 +554,9 @@ void Test()
 
     auto n = mp::GetBatchReadDataSize(buf, ii32, ii16, ii8, array11, array22, str2);
     assert(n == size);
+
+    auto n2 = GetBatchReadDataSize<mp::DataBuffer::kNative, decltype(ii32), decltype(ii16), decltype(ii8), decltype(array11), decltype(array22), decltype(str2)>(buf);
+    assert(n2 == n);
 
     auto ptr = buf.Data();
     mp::BatchRead(buf, ii32, ii16, ii8, array11, array22, str2);
@@ -452,4 +583,3 @@ void Test()
             return true;
         }, std::make_tuple(ii32, ii16, ii8, str2));
 }
-*/
