@@ -485,86 +485,8 @@ namespace mp
             return false;
         }
 
-    private:
-        template< template<typename...> class U, typename T >
-        struct is_template_instant_of : std::false_type {};
-
-        template< template <typename...> class U, typename... args >
-        struct is_template_instant_of< U, U<args...> > : std::true_type {};
-
-        template<typename T>
-        struct is_stdstring : is_template_instant_of<std::basic_string, T >
-        {};
-        template<typename T>
-        struct is_stdstringview : is_template_instant_of<std::basic_string_view, T >
-        {};
-
-        template<class T>
-        struct is_stdarray :std::is_array<T> {};
-        template<class T, std::size_t N>
-        struct is_stdarray<std::array<T, N>> :std::true_type {};
-        // optional:
-        template<class T>
-        struct is_stdarray<T const> :is_stdarray<T> {};
-        template<class T>
-        struct is_stdarray<T volatile> :is_stdarray<T> {};
-        template<class T>
-        struct is_stdarray<T volatile const> :is_stdarray<T> {};
-
-        template <typename... Args, typename Func, std::size_t... Idx>
-        inline bool ForEachRight(const std::tuple<Args...>& t, Func&& f, std::index_sequence<Idx...>)
-        {
-            return (...&&f(std::get<Idx>(t)));
-        }
-
-        template <typename... Args, typename F, std::size_t... Idx>
-        constexpr bool for_each(const std::tuple<Args...>& t, F&& f, std::index_sequence<Idx...>)
-        {
-            //std::cout << "size:" << sizeof...(Idx) << "\n";
-
-            return (...&std::forward<F>(f)(std::get<Idx>(t)));
-        }
         // Helpers
     public:
-        template< typename Head, class... Tail>
-        static size_t GetBatchDataSize(Head&& value, Tail&&... tail)  noexcept
-        {
-            if constexpr (sizeof...(tail) > 0)
-            {
-                //return  (GetBatchDataSize(value) + ... + GetBatchDataSize(tail));
-                return GetBatchDataSize(value) + GetBatchDataSize(tail...);
-            }
-            else
-            {
-
-                if constexpr (std::is_integral_v<std::remove_cvref_t<Head>>)
-                {
-                    return sizeof(value);
-                }
-                else if constexpr (std::is_array<std::remove_cvref_t<Head>>::value)
-                {
-                    return   std::extent<std::remove_cvref_t<Head>>::value;
-                }
-                else if constexpr (is_stdarray<std::remove_cvref_t<Head>>::value)
-                {
-                    return  value.size();
-                }
-                else if constexpr (is_stdstring<std::remove_cvref_t<Head>>::value)
-                {
-                    static_assert(0, "Unsupported type std::string");
-                    //return  4 + value.size();
-                }
-                else if constexpr (is_stdstringview<std::remove_cvref_t<Head>>::value)
-                {
-                    static_assert(0, "Unsupported type std::string_view");
-                    //return  4 + value.size();
-                }
-                else
-                {
-                    static_assert(0, "Unsupported type");
-                }
-            }
-        }
 
         std::string ToString() const
         {
