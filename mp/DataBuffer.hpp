@@ -184,6 +184,18 @@ namespace mp
             }
         }
 
+        void UnConsume(std::size_t n) noexcept
+        {
+            if (read_index_ >= n)
+            {
+                read_index_ -= n;
+            }
+            else
+            {
+                read_index_ = 0;
+            }
+        }
+
         std::string_view Prepare(std::size_t n)
         {
             EnsureWritableBytes(n);
@@ -415,31 +427,31 @@ namespace mp
         }
 
         template<size_t N>
-        void Read(std::array<char, N>& array) noexcept
+        bool Read(std::array<char, N>& array) noexcept
         {
-            Read(array.data(), N);
+            return Read(array.data(), N);
         }
 
         template<size_t N>
-        void Read(char(&array)[N])  noexcept
+        bool Read(char(&array)[N])  noexcept
         {
-            Read(array, N);
+            return Read(array, N);
         }
 
         template<ByteOrderEndian endian = ByteOrderEndian::kNative, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0 >
-        void Read(T& value)  noexcept
+        bool Read(T& value)  noexcept
         {
             if constexpr (endian == ByteOrderEndian::kNative)
             {
-                Read(&value, sizeof(value));
+               return Read(&value, sizeof(value));
             }
             else if constexpr (endian == ByteOrderEndian::kLittle)
             {
-                ReadIntegerLE(value);
+               return ReadIntegerLE(value);
             }
             else if constexpr (endian == ByteOrderEndian::kBig)
             {
-                ReadIntegerBE(value);
+               return ReadIntegerBE(value);
             }
             else
             {
@@ -448,19 +460,29 @@ namespace mp
         }
 
         template<typename T>
-        void ReadIntegerLE(T& value)  noexcept
+        bool ReadIntegerLE(T& value)  noexcept
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
-            Read(&value, sizeof(value));
-            value = endian::letoh(value);
+            if (Read(&value, sizeof(value)))
+            {
+                value = endian::letoh(value);
+                return true;
+            }
+
+            return false;
+           
         }
 
         template<typename T>
-        void ReadIntegerBE(T& value)  noexcept
+        bool ReadIntegerBE(T& value)  noexcept
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
-            Read(&value, sizeof(value));
-            value = endian::betoh(value);
+            if (Read(&value, sizeof(value)))
+            {
+                value = endian::betoh(value);
+                return true;
+            }
+            return false;
         }
 
     private:
