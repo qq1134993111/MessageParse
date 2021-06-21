@@ -302,28 +302,6 @@ namespace mp
             Write(&value, sizeof(value));
         }
 
-        template<ByteOrderEndian endian = ByteOrderEndian::kNative, class T, class... ARGS>
-        void WriteBatch(T&& value, ARGS&&... args)  noexcept
-        {
-            if constexpr (sizeof...(args) > 0)
-            {
-                return  (WriteBatch<endian>(value), ..., WriteBatch<endian>(args));//fold
-            }
-            else
-            {
-
-                if constexpr (std::is_integral_v<std::remove_cvref_t<T>>)
-                {
-                    return Write<endian>(value);
-                }
-                else
-                {
-                    return Write(value);
-
-                }
-            }
-        }
-
         // Insert content, specified by the parameter, into the front of reading index
         bool WriteFront(const void* buf, size_t len)  noexcept
         {
@@ -387,40 +365,6 @@ namespace mp
             }
             return false;
         }
-
-
-
-        template<ByteOrderEndian endian = ByteOrderEndian::kNative, bool CheckSize = true, typename Head, class... Tail>
-        bool WriteFrontBatch(Head&& value, Tail&&... tail)  noexcept
-        {
-            if (CheckSize)
-            {
-                if (FrontWriteableBytes() < GetBatchDataSize(value, tail...))
-                {
-                    return false;
-                }
-            }
-
-            if constexpr (sizeof...(tail) > 0)
-            {
-                return WriteFrontBatch<endian, false>(tail...) && WriteFrontBatch<endian, false>(value);
-            }
-            else
-            {
-                if constexpr (std::is_integral_v<std::remove_cvref_t<Head>>)
-                {
-                    return WriteFront<endian>(value);
-                }
-                else
-                {
-                    return WriteFront(value);
-
-                }
-            }
-            return false;
-        }
-
-
 
         //Read
     public:
