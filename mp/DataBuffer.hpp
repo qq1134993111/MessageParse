@@ -36,16 +36,37 @@ namespace mp
             assert(FrontWriteableBytes() == reserved_prepend_size);
         }
 
-        explicit DataBuffer(const void* data, size_t size, size_t reserved_prepend_size = 0)
-            : capacity_(reserved_prepend_size + size)
-            , read_index_(reserved_prepend_size)
-            , write_index_(reserved_prepend_size + size)
-            , reserved_prepend_size_(reserved_prepend_size)
+        DataBuffer(const DataBuffer&) = delete;
+
+        DataBuffer& operator=(const DataBuffer&) = delete;
+
+        DataBuffer(DataBuffer&& other) noexcept
+            : buffer_(other.buffer_)
+            , capacity_(other.capacity_)
+            , read_index_(other.read_index_)
+            , write_index_(other.write_index_)
+            , reserved_prepend_size_(other.reserved_prepend_size_)
         {
-            buffer_ = new char[capacity_];
-            assert(Size() == size);
-            assert(WritableBytes() == 0);
-            assert(FrontWriteableBytes() == reserved_prepend_size);
+            other.buffer_ = nullptr;
+            other.capacity_ = 0;
+            other.read_index_ = other.write_index_ = other.reserved_prepend_size_;
+
+        }
+
+        DataBuffer& operator=(DataBuffer&& other) noexcept
+        {
+
+            buffer_ = other.buffer_;
+            capacity_ = other.capacity_;
+            read_index_ = other.read_index_;
+            write_index_ = other.write_index_;
+            reserved_prepend_size_ = other.reserved_prepend_size_;
+
+            other.buffer_ = nullptr;
+            other.capacity_ = 0;
+            other.read_index_ = other.write_index_ = other.reserved_prepend_size_;
+
+            return *this;
         }
 
         ~DataBuffer()
