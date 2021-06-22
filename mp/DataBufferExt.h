@@ -123,7 +123,7 @@ namespace mp
         }
     }
 
-    template<DataBuffer::ByteOrderEndian endian = DataBuffer::ByteOrderEndian::kNative, class Head, class... Tail>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, class Head, class... Tail>
     void BatchWrite(DataBuffer& buffer, Head&& value, Tail&&... tail)  noexcept
     {
         if constexpr (sizeof...(tail) > 0)
@@ -158,7 +158,7 @@ namespace mp
         }
     }
 
-    template<DataBuffer::ByteOrderEndian endian = DataBuffer::ByteOrderEndian::kNative, bool CheckSize = true, typename Head, class... Tail>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, bool CheckSize = true, typename Head, class... Tail>
     bool BatchWriteFront(DataBuffer& buffer, Head&& value, Tail&&... tail)  noexcept
     {
         if constexpr (CheckSize)
@@ -203,7 +203,7 @@ namespace mp
     }
 
 
-    template<DataBuffer::ByteOrderEndian endian = DataBuffer::ByteOrderEndian::kNative, typename Head, class... Tail>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, typename Head, class... Tail>
     bool BatchReadImpl(DataBuffer& buffer, Head& value, Tail&... tail)  noexcept
     {
         if constexpr (sizeof...(tail) > 0)
@@ -275,7 +275,7 @@ namespace mp
 
     }
 
-    template<DataBuffer::ByteOrderEndian endian = DataBuffer::ByteOrderEndian::kNative, class... ARGS>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, class... ARGS>
     bool BatchRead(DataBuffer& buffer, ARGS&&... args)  noexcept
     {
         auto ptr = buffer.Data();
@@ -288,7 +288,7 @@ namespace mp
         return true;
     }
 
-    template<DataBuffer::ByteOrderEndian endian = DataBuffer::ByteOrderEndian::kNative, typename Head, class... Tail>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, typename Head, class... Tail>
     bool GetBatchReadDataSizeImpl(DataBuffer& buffer, size_t& already_read_size, Head&& value, Tail&&... tail)  noexcept
     {
         if constexpr (sizeof...(tail))
@@ -383,7 +383,7 @@ namespace mp
         }
     }
 
-    template<DataBuffer::ByteOrderEndian endian = DataBuffer::ByteOrderEndian::kNative, class... ARGS>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, class... ARGS>
     size_t GetBatchReadDataSize(DataBuffer& buffer, ARGS&&... args)  noexcept
     {
         auto ptr = buffer.Data();
@@ -401,7 +401,7 @@ namespace mp
         return size;
     }
 
-    template<DataBuffer::ByteOrderEndian endian = DataBuffer::ByteOrderEndian::kNative, class... Types>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, class... Types>
     struct BatchReadDataSize
     {
         bool operator()(DataBuffer& buffer, size_t& already_read_size) const
@@ -410,7 +410,7 @@ namespace mp
         }
     };
 
-    template<DataBuffer::ByteOrderEndian endian, class Type>
+    template<DataBuffer::ByteOrder endian, class Type>
     struct BatchReadDataSize<endian, Type>
     {
         bool operator()(DataBuffer& buffer, size_t& already_read_size) const
@@ -502,7 +502,7 @@ namespace mp
         }
     };
 
-    template<DataBuffer::ByteOrderEndian endian, class Head, class... Tail>
+    template<DataBuffer::ByteOrder endian, class Head, class... Tail>
     struct BatchReadDataSize<endian, Head, Tail...>
     {
         bool operator()(DataBuffer& buffer, size_t& already_read_size) const
@@ -511,7 +511,7 @@ namespace mp
         }
     };
 
-    template<DataBuffer::ByteOrderEndian endian = DataBuffer::ByteOrderEndian::kNative, class... Types>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, class... Types>
     size_t GetBatchReadDataSize(DataBuffer& buffer)  noexcept
     {
         auto ptr = buffer.Data();

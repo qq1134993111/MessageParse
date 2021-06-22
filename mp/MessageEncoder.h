@@ -22,7 +22,7 @@ namespace mp
 
             if (host_to_network_byte_order_)
             {
-                data_buffer_.Write<DataBuffer::kBig>(value);
+                data_buffer_.Write<DataBuffer::kBigEndian>(value);
             }
             else
             {

@@ -21,7 +21,7 @@ namespace mp
         {
             if (host_to_network_byte_order_)
             {
-                return data_buffer_.Read<DataBuffer::kBig>(value) ? ErrorCode::kSuccess : ErrorCode::kReadError;
+                return data_buffer_.Read<DataBuffer::kBigEndian>(value) ? ErrorCode::kSuccess : ErrorCode::kReadError;
             }
             else
             {
