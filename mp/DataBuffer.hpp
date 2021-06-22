@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <optional>
 #include "EndianConversion.hpp"
 
 namespace mp
@@ -223,7 +224,7 @@ namespace mp
             return std::string_view(WritePtr(), n);
         }
 
-        void Adjustment()
+        void Adjustment()  noexcept
         {
             if (read_index_ > reserved_prepend_size_)
             {
@@ -233,6 +234,8 @@ namespace mp
                 write_index_ = read_index_ + data_size;
             }
         }
+
+
         // Write
     public:
 
@@ -269,7 +272,7 @@ namespace mp
         {
             if constexpr (endian == ByteOrderEndian::kNative)
             {
-                Write(&value, sizeof(value));
+                WriteInteger& value, sizeof(value));
             }
             else if constexpr (endian == ByteOrderEndian::kLittle)
             {
@@ -285,6 +288,12 @@ namespace mp
             }
         }
 
+        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        void WriteInteger(T value)
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+            Write(&value, sizeof(value));
+        }
 
         template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
         void WriteIntegerLE(T value)
@@ -366,8 +375,9 @@ namespace mp
             return false;
         }
 
-        //Read
+        //Peek
     public:
+
         bool Peek(void* buf, size_t len)  noexcept
         {
             if (Size() < len)
@@ -380,6 +390,131 @@ namespace mp
             return true;
         }
 
+        template<size_t N>
+        bool Peek(std::array<char, N>& array) noexcept
+        {
+            return Peek(array.data(), N);
+        }
+
+        template<size_t N>
+        bool Peek(char(&array)[N])  noexcept
+        {
+            return Peek(array, N);
+        }
+
+        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        bool PeekIntegerLE(T& value)  noexcept
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+
+            if (Peek(&value, sizeof(T)))
+            {
+                value = endian::letoh(value);
+                return true;
+            }
+
+            return false;
+        }
+
+        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        std::optional<T> PeekIntegerLE() noexcept
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+            T value = 0;
+            if (PeekIntegerLE(value))
+                return value;
+            return {};
+        }
+
+        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        bool PeekIntegerBE(T& value)  noexcept
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+
+            if (Peek(&value, sizeof(T)))
+            {
+                value = endian::betoh(value);
+                return true;
+            }
+
+            return false;
+        }
+
+        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        std::optional<T> PeekIntegerBE() noexcept
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+            T value = 0;
+            if (PeekIntegerLE(value))
+                return value;
+            return {};
+        }
+
+        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        bool PeekInteger(T& value)  noexcept
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+
+            return Peek(&value, sizeof(T));
+        }
+
+        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        std::optional<T> PeekInteger()  noexcept
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+            T value = 0;
+            if (Peek(&value, sizeof(T)))
+            {
+                return value;
+            }
+
+            return {};
+        }
+
+        template<typename T, ByteOrderEndian endian = ByteOrderEndian::kNative, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        std::optional<T> Peek() noexcept
+        {
+            if constexpr (endian == ByteOrderEndian::kNative)
+            {
+                return PeekInteger<T>();
+            }
+            else if constexpr (endian == ByteOrderEndian::kLittle)
+            {
+                return  PeekIntegerLE<T>();
+            }
+            else if constexpr (endian == ByteOrderEndian::kBig)
+            {
+                return PeekIntegerBE<T>();
+            }
+            else
+            {
+                static_assert(0, "endian error");
+            }
+        }
+
+        template<ByteOrderEndian endian = ByteOrderEndian::kNative, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        bool Peek(T& value)   noexcept
+        {
+            if constexpr (endian == ByteOrderEndian::kNative)
+            {
+                return PeekInteger(value);
+            }
+            else if constexpr (endian == ByteOrderEndian::kLittle)
+            {
+                return ReadIntegerLE(value);
+            }
+            else if constexpr (endian == ByteOrderEndian::kBig)
+            {
+                return ReadIntegerBE(value);
+            }
+            else
+            {
+                static_assert(0, "endian error");
+            }
+        }
+
+        //Read
+    public:
         bool Read(void* buf, size_t len)  noexcept
         {
             if (Peek(buf, len))
@@ -408,7 +543,7 @@ namespace mp
         {
             if constexpr (endian == ByteOrderEndian::kNative)
             {
-                return Read(&value, sizeof(value));
+                return  ReadInteger(value);
             }
             else if constexpr (endian == ByteOrderEndian::kLittle)
             {
@@ -422,6 +557,13 @@ namespace mp
             {
                 static_assert(0, "endian error");
             }
+        }
+
+        template<typename T>
+        bool ReadInteger(T& value)  noexcept
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+            return Read(&value, sizeof(T));
         }
 
         template<typename T>
