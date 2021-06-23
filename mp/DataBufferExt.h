@@ -6,30 +6,43 @@ namespace mp
 {
     namespace tmp
     {
-        template< template<typename...> class U, typename Head >
+        template< class T >
+        struct is_signed_intergral_like : std::integral_constant < bool,
+            (std::is_integral<T>::value) &&
+            std::is_signed<T>::value
+        > {};
+
+        template< class T >
+        struct is_unsigned_intergral_like : std::integral_constant < bool,
+            (std::is_integral<T>::value) &&
+            std::is_unsigned<T>::value
+        > {};
+
+        template < template <typename...> class U, typename T >
         struct is_template_instant_of : std::false_type {};
 
-        template< template <typename...> class U, typename... args >
+        template < template <typename...> class U, typename... args >
         struct is_template_instant_of< U, U<args...> > : std::true_type {};
 
-        template<typename Head>
-        struct is_stdstring : is_template_instant_of<std::basic_string, Head >
-        {};
-        template<typename Head>
-        struct is_stdstringview : is_template_instant_of<std::basic_string_view, Head >
+        template<typename T>
+        struct is_stdstring : is_template_instant_of < std::basic_string, T >
         {};
 
-        template<class Head>
-        struct is_stdarray :std::is_array<Head> {};
-        template<class Head, std::size_t N>
-        struct is_stdarray<std::array<Head, N>> :std::true_type {};
+        template<typename T>
+        struct is_stdstringview : is_template_instant_of<std::basic_string_view, T>
+        {};
+
+        template<class T>
+        struct is_stdarray :std::is_array<T> {};
+        template<class T, std::size_t N>
+        struct is_stdarray<std::array<T, N>> :std::true_type {};
         // optional:
-        template<class Head>
-        struct is_stdarray<Head const> :is_stdarray<Head> {};
-        template<class Head>
-        struct is_stdarray<Head volatile> :is_stdarray<Head> {};
-        template<class Head>
-        struct is_stdarray<Head volatile const> :is_stdarray<Head> {};
+        template<class T>
+        struct is_stdarray<T const> :is_stdarray<T> {};
+        template<class T>
+        struct is_stdarray<T volatile> :is_stdarray<T> {};
+        template<class T>
+        struct is_stdarray<T volatile const> :is_stdarray<T> {};
 
 
 
