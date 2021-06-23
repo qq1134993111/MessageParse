@@ -6,17 +6,6 @@ namespace mp
 {
     namespace tmp
     {
-        template< class T >
-        struct is_signed_intergral_like : std::integral_constant < bool,
-            (std::is_integral<T>::value) &&
-            std::is_signed<T>::value
-        > {};
-
-        template< class T >
-        struct is_unsigned_intergral_like : std::integral_constant < bool,
-            (std::is_integral<T>::value) &&
-            std::is_unsigned<T>::value
-        > {};
 
         template < template <typename...> class U, typename T >
         struct is_template_instant_of : std::false_type {};
@@ -136,7 +125,7 @@ namespace mp
         }
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, class Head, class... Tail>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class Head, class... Tail>
     void BatchWrite(DataBuffer& buffer, Head&& value, Tail&&... tail)  noexcept
     {
         if constexpr (sizeof...(tail) > 0)
@@ -171,7 +160,7 @@ namespace mp
         }
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, bool CheckSize = true, typename Head, class... Tail>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, bool CheckSize = true, typename Head, class... Tail>
     bool BatchWriteFront(DataBuffer& buffer, Head&& value, Tail&&... tail)  noexcept
     {
         if constexpr (CheckSize)
@@ -216,7 +205,7 @@ namespace mp
     }
 
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, typename Head, class... Tail>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, typename Head, class... Tail>
     bool BatchReadImpl(DataBuffer& buffer, Head& value, Tail&... tail)  noexcept
     {
         if constexpr (sizeof...(tail) > 0)
@@ -288,7 +277,7 @@ namespace mp
 
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, class... ARGS>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... ARGS>
     bool BatchRead(DataBuffer& buffer, ARGS&&... args)  noexcept
     {
         auto ptr = buffer.Data();
@@ -301,7 +290,7 @@ namespace mp
         return true;
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, typename Head, class... Tail>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, typename Head, class... Tail>
     bool GetBatchReadDataSizeImpl(DataBuffer& buffer, size_t& already_read_size, Head&& value, Tail&&... tail)  noexcept
     {
         if constexpr (sizeof...(tail))
@@ -396,7 +385,7 @@ namespace mp
         }
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, class... ARGS>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... ARGS>
     size_t GetBatchReadDataSize(DataBuffer& buffer, ARGS&&... args)  noexcept
     {
         auto ptr = buffer.Data();
@@ -414,7 +403,7 @@ namespace mp
         return size;
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, class... Types>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... Types>
     struct BatchReadDataSize
     {
         bool operator()(DataBuffer& buffer, size_t& already_read_size) const
@@ -524,7 +513,7 @@ namespace mp
         }
     };
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kNative, class... Types>
+    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... Types>
     size_t GetBatchReadDataSize(DataBuffer& buffer)  noexcept
     {
         auto ptr = buffer.Data();
@@ -544,6 +533,8 @@ namespace mp
 
 }
 
+
+
 inline void DataBufferTest()
 {
     mp::DataBuffer buf(10, 128);
@@ -551,6 +542,7 @@ inline void DataBufferTest()
     int16_t i16 = 16;
     int8_t i8 = 8;
     std::array<char, 10> array1;
+
     array1.fill('x');
     char array2[2] = { 'A','B' };
     std::string str = "hello";
@@ -568,7 +560,7 @@ inline void DataBufferTest()
     auto n = mp::GetBatchReadDataSize(buf, ii32, ii16, ii8, array11, array22, str2);
     assert(n == size);
 
-    auto n2 = GetBatchReadDataSize<mp::DataBuffer::kNative, decltype(ii32), decltype(ii16), decltype(ii8), decltype(array11), decltype(array22), decltype(str2)>(buf);
+    auto n2 = mp::GetBatchReadDataSize<mp::DataBuffer::ByteOrder::kNative, decltype(ii32), decltype(ii16), decltype(ii8), decltype(array11), decltype(array22), decltype(str2)>(buf);
     assert(n2 == n);
 
     auto ptr = buf.Data();

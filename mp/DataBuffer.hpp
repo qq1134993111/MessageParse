@@ -15,12 +15,12 @@ namespace mp
     class  DataBuffer
     {
     public:
-        enum  ByteOrder
+        enum class  ByteOrder :uint8_t
         {
             kNative = 0,             //本机的字节序
             kLittleEndian = 1,       //小端序
             kBigEndian = 2,          //网络字节序
-            kNullWithRuntime = 3     //运行时设置的字节序
+            kRuntime = 3             //运行时设置的字节序
         };
 
         static const size_t kCheapPrependSize = 8;
@@ -276,7 +276,7 @@ namespace mp
             Write(array, N);
         }
 
-        template<ByteOrder endian = ByteOrder::kNullWithRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template<ByteOrder endian = ByteOrder::kRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
         void Write(T value)
         {
             if constexpr (endian == ByteOrder::kNative)
@@ -291,7 +291,7 @@ namespace mp
             {
                 WriteIntegerBE(value);
             }
-            else if constexpr (endian == ByteOrder::kNullWithRuntime)
+            else if constexpr (endian == ByteOrder::kRuntime)
             {
                 if (endian_ == ByteOrder::kBigEndian)
                 {
@@ -375,7 +375,7 @@ namespace mp
             return WriteFront(array, N);
         }
 
-        template<ByteOrder endian = ByteOrder::kNullWithRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template<ByteOrder endian = ByteOrder::kRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
         bool WriteFront(T value)   noexcept
         {
             if constexpr (endian == ByteOrder::kNative)
@@ -392,7 +392,7 @@ namespace mp
                 value = endian::htobe(value);
                 return WriteFront(value);
             }
-            else if constexpr (endian == ByteOrder::kNullWithRuntime)
+            else if constexpr (endian == ByteOrder::kRuntime)
             {
                 if (endian_ == ByteOrder::kBigEndian)
                 {
@@ -512,7 +512,7 @@ namespace mp
             return {};
         }
 
-        template<typename T, ByteOrder endian = ByteOrder::kNullWithRuntime, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template<typename T, ByteOrder endian = ByteOrder::kRuntime, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
         std::optional<T> Peek() noexcept
         {
             if constexpr (endian == ByteOrder::kNative)
@@ -527,7 +527,7 @@ namespace mp
             {
                 return PeekIntegerBE<T>();
             }
-            else if constexpr (endian == ByteOrder::kNullWithRuntime)
+            else if constexpr (endian == ByteOrder::kRuntime)
             {
                 if (endian_ == ByteOrder::kBigEndian)
                 {
@@ -548,7 +548,7 @@ namespace mp
             }
         }
 
-        template<ByteOrder endian = ByteOrder::kNullWithRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template<ByteOrder endian = ByteOrder::kRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
         bool Peek(T& value)   noexcept
         {
             if constexpr (endian == ByteOrder::kNative)
@@ -563,7 +563,7 @@ namespace mp
             {
                 return ReadIntegerBE(value);
             }
-            else if constexpr (endian == ByteOrder::kNullWithRuntime)
+            else if constexpr (endian == ByteOrder::kRuntime)
             {
                 if (endian_ == ByteOrder::kBigEndian)
                 {
@@ -609,7 +609,7 @@ namespace mp
             return Read(array, N);
         }
 
-        template<ByteOrder endian = ByteOrder::kNullWithRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0 >
+        template<ByteOrder endian = ByteOrder::kRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0 >
         bool Read(T& value)  noexcept
         {
             if constexpr (endian == ByteOrder::kNative)
@@ -624,7 +624,7 @@ namespace mp
             {
                 return ReadIntegerBE(value);
             }
-            else if constexpr (endian == ByteOrder::kNullWithRuntime)
+            else if constexpr (endian == ByteOrder::kRuntime)
             {
                 if (endian_ == ByteOrder::kBigEndian)
                 {
