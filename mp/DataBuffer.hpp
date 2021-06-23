@@ -89,6 +89,7 @@ namespace mp
             std::swap(read_index_, rhs.read_index_);
             std::swap(write_index_, rhs.write_index_);
             std::swap(reserved_prepend_size_, rhs.reserved_prepend_size_);
+            std::swap(endian_, rhs.endian_);
         }
 
         //read ptr
@@ -173,6 +174,7 @@ namespace mp
         void Shrink(size_t reserve = 0)
         {
             DataBuffer other(Size() + reserve);
+            other.SetEndian(endian_);
             other.Write(Data(), Size());
             Swap(other);
         }
