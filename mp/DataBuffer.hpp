@@ -82,7 +82,7 @@ namespace mp
             capacity_ = 0;
         }
 
-        void Swap(DataBuffer& rhs)
+        void Swap(DataBuffer& rhs) noexcept
         {
             std::swap(buffer_, rhs.buffer_);
             std::swap(capacity_, rhs.capacity_);
@@ -242,7 +242,7 @@ namespace mp
             }
         }
 
-        void SetEndian(ByteOrder byte_order)
+        void SetEndian(ByteOrder byte_order)  noexcept
         {
             endian_ = byte_order;
         }
