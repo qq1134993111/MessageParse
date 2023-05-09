@@ -7,56 +7,70 @@ namespace mp
     namespace tmp
     {
 
-        template < template <typename...> class U, typename T >
-        struct is_template_instant_of : std::false_type {};
+        template <template <typename...> class U, typename T>
+        struct is_template_instant_of : std::false_type
+        {
+        };
 
-        template < template <typename...> class U, typename... args >
-        struct is_template_instant_of< U, U<args...> > : std::true_type {};
+        template <template <typename...> class U, typename... args>
+        struct is_template_instant_of<U, U<args...>> : std::true_type
+        {
+        };
 
-        template<typename T>
-        struct is_stdstring : is_template_instant_of < std::basic_string, T >
-        {};
+        template <typename T>
+        struct is_stdstring : is_template_instant_of<std::basic_string, T>
+        {
+        };
 
-        template<typename T>
+        template <typename T> 
         struct is_stdstringview : is_template_instant_of<std::basic_string_view, T>
-        {};
+        {
+        };
 
-        template<class T>
-        struct is_stdarray :std::is_array<T> {};
-        template<class T, std::size_t N>
-        struct is_stdarray<std::array<T, N>> :std::true_type {};
+        template <class T> 
+        struct is_stdarray : std::is_array<T>
+        {
+        };
+        template <class T, std::size_t N> 
+        struct is_stdarray<std::array<T, N>> : std::true_type
+        {
+        };
         // optional:
-        template<class T>
-        struct is_stdarray<T const> :is_stdarray<T> {};
-        template<class T>
-        struct is_stdarray<T volatile> :is_stdarray<T> {};
-        template<class T>
-        struct is_stdarray<T volatile const> :is_stdarray<T> {};
-
-
+        template <class T> 
+        struct is_stdarray<T const> : is_stdarray<T>
+        {
+        };
+        template <class T> 
+        struct is_stdarray<T volatile> : is_stdarray<T>
+        {
+        };
+        template <class T> 
+        struct is_stdarray<T volatile const> : is_stdarray<T>
+        {
+        };
 
         template <typename F, typename... Args, std::size_t... Idx>
         constexpr auto TupleForeach(F&& f, const std::tuple<Args...>& t, std::index_sequence<Idx...>)
         {
-            //auto v={ (std::forward<F>(f)(std::get<Idx>(t)),0) ... };    //参数包展开
-            return (std::forward<F>(f)(std::get<Idx>(t)), ...);    //折叠表达式
+            // auto v={ (std::forward<F>(f)(std::get<Idx>(t)),0) ... };    //参数包展开
+            return (std::forward<F>(f)(std::get<Idx>(t)), ...); // 折叠表达式
         }
 
-        template<typename Func, typename... Args>
+        template <typename Func, typename... Args>
         constexpr auto TupleForeach(Func&& f, std::tuple<Args...>&& tup)
         {
             return TupleForeach(std::forward<Func>(f), std::forward<std::tuple<Args...>>(tup), std::make_index_sequence < std::tuple_size<std::tuple<Args...>>{} > {});
         }
 
-        template<std::size_t... Is>
+        template <std::size_t... Is>
         constexpr auto index_sequence_reverse(std::index_sequence<Is...> const&)
             -> decltype(std::index_sequence<sizeof...(Is) - 1U - Is...>{});
 
-        template<std::size_t N>
+        template <std::size_t N>
         using make_index_sequence_reverse = decltype(index_sequence_reverse(std::make_index_sequence<N>{}));
 
         // iterate reverse order
-        template<class F, class T>
+        template <class F, class T>
         auto TupleForeachReverse(F&& f, T&& tup)
         {
             const std::size_t size = std::tuple_size<std::decay_t<T>>::value;
@@ -64,8 +78,8 @@ namespace mp
             return TupleForeach(std::forward<F>(f), std::forward<T>(tup), indexes);
         }
 
-        template<class F, class Head, class... Tail>
-        bool FuncTupleArgs(F&& f, Head&& head, Tail&&... tail)
+        template <class F, class Head, class... Tail>
+        bool FuncTupleArgs(F&& f, Head&& head, Tail &&...tail)
         {
             if constexpr (sizeof...(tail) > 0)
             {
@@ -77,20 +91,20 @@ namespace mp
             }
         }
 
-        template<class F, typename... Ts>
+        template <class F, typename... Ts>
         auto TupleForeachReverseWithReturnBool(F&& f, std::tuple<Ts...>&& tup)
         {
-            return std::apply([&f](Ts const&... args) {return  FuncTupleArgs(std::forward<F>(f), args...); }, tup);
+            return std::apply([&f](Ts const &...args) { return FuncTupleArgs(std::forward<F>(f), args...); }, tup);
         }
-    }
+    } // namespace tmp
 
-    template< typename Head, class... Tail>
-    size_t GetBatchWriteDataSize(Head&& value, Tail&&... tail)  noexcept
+    template <typename Head, class... Tail>
+    size_t GetBatchWriteDataSize(Head&& value, Tail &&...tail) noexcept
     {
         if constexpr (sizeof...(tail) > 0)
         {
-            //return  (GetBatchDataSize(std::forward<Head>(value)) + ... + GetBatchDataSize(std::forward<Tail>(tail)));  //折叠表达式
-            return GetBatchWriteDataSize(std::forward<Head>(value)) + GetBatchWriteDataSize(std::forward<Tail>(tail)...);   //参数包展开
+            // return  (GetBatchDataSize(std::forward<Head>(value)) + ... + GetBatchDataSize(std::forward<Tail>(tail))); //折叠表达式
+            return GetBatchWriteDataSize(std::forward<Head>(value)) + GetBatchWriteDataSize(std::forward<Tail>(tail)...); // 参数包展开
         }
         else
         {
@@ -102,21 +116,21 @@ namespace mp
             }
             else if constexpr (std::is_array<HeadType>::value)
             {
-                return  std::extent<std::remove_cvref_t<Head>>::value;
+                return std::extent<std::remove_cvref_t<Head>>::value;
             }
             else if constexpr (tmp::is_stdarray<HeadType>::value)
             {
-                return  value.size();
+                return value.size();
             }
             else if constexpr (tmp::is_stdstring<HeadType>::value)
             {
-                //static_assert(0, "Unsupported type std::string");
-                return  4 + value.size();
+                // static_assert(0, "Unsupported type std::string");
+                return sizeof(int32_t) + value.size();
             }
             else if constexpr (tmp::is_stdstringview<HeadType>::value)
             {
-                //static_assert(0, "Unsupported type std::string_view");
-                return  4 + value.size();
+                // static_assert(0, "Unsupported type std::string_view");
+                return sizeof(int32_t) + value.size();
             }
             else
             {
@@ -125,13 +139,13 @@ namespace mp
         }
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class Head, class... Tail>
-    void BatchWrite(DataBuffer& buffer, Head&& value, Tail&&... tail)  noexcept
+    template <DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class Head, class... Tail>
+    void BatchWrite(DataBuffer& buffer, Head&& value, Tail &&...tail) noexcept
     {
         if constexpr (sizeof...(tail) > 0)
         {
-            //return  { WriteBatch<endian>(buffer, std::forward<Head>(value)), WriteBatch<endian>(buffer, std::forward<Tail>(tail)...) }; //参数包展开
-            return  (BatchWrite<endian>(buffer, std::forward<Head>(value)), ..., BatchWrite<endian>(buffer, std::forward<Tail>(tail)));//fold 折叠表达式
+            // return  { WriteBatch<endian>(buffer, std::forward<Head>(value)), WriteBatch<endian>(buffer,std::forward<Tail>(tail)...) }; //参数包展开
+            return (BatchWrite<endian>(buffer, std::forward<Head>(value)), ..., BatchWrite<endian>(buffer, std::forward<Tail>(tail))); // fold 折叠表达式
         }
         else
         {
@@ -151,7 +165,6 @@ namespace mp
             else if constexpr (tmp::is_stdarray<HeadType>::value)
             {
                 return buffer.Write(value);
-
             }
             else
             {
@@ -160,12 +173,12 @@ namespace mp
         }
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, bool CheckSize = true, typename Head, class... Tail>
-    bool BatchWriteFront(DataBuffer& buffer, Head&& value, Tail&&... tail)  noexcept
+    template <DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, bool CheckSize = true, typename Head, class... Tail>
+    bool BatchWriteFront(DataBuffer& buffer, Head&& value, Tail &&...tail) noexcept
     {
         if constexpr (CheckSize)
         {
-            if (buffer.FrontWriteableBytes() < GetBatchWriteDataSize(std::forward<Head>(value), std::forward<Tail>(tail)...))
+            if (buffer.PrependableBytes() < GetBatchWriteDataSize(std::forward<Head>(value), std::forward<Tail>(tail)...))
             {
                 return false;
             }
@@ -184,16 +197,15 @@ namespace mp
             }
             else if constexpr (tmp::is_stdstring<HeadType>::value)
             {
-                return  buffer.WriteFront(value.data(), value.size()) && buffer.WriteFront((int32_t)value.size());
+                return buffer.WriteFront(value.data(), value.size()) && buffer.WriteFront((int32_t)value.size());
             }
             else if constexpr (tmp::is_stdstringview<HeadType>::value)
             {
-                return  buffer.WriteFront(value) && buffer.WriteFront((int32_t)value.size());
+                return buffer.WriteFront(value) && buffer.WriteFront((int32_t)value.size());
             }
             else if constexpr (tmp::is_stdarray<HeadType>::value)
             {
                 return buffer.WriteFront(value);
-
             }
             else
             {
@@ -204,9 +216,8 @@ namespace mp
         return false;
     }
 
-
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, typename Head, class... Tail>
-    bool BatchReadImpl(DataBuffer& buffer, Head& value, Tail&... tail)  noexcept
+    template <DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, typename Head, class... Tail>
+    bool BatchReadImpl(DataBuffer& buffer, Head& value, Tail &...tail) noexcept
     {
         if constexpr (sizeof...(tail) > 0)
         {
@@ -262,36 +273,33 @@ namespace mp
                 }
 
                 return buffer.Read(value.data(), value.size());
-
             }
             else if constexpr (tmp::is_stdarray<HeadType>::value)
             {
                 return buffer.Read(value);
-
             }
             else
             {
                 static_assert(0, "Unsupported type");
             }
         }
-
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... ARGS>
-    bool BatchRead(DataBuffer& buffer, ARGS&&... args)  noexcept
+    template <DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... ARGS>
+    bool BatchRead(DataBuffer& buffer, ARGS &&...args) noexcept
     {
         auto ptr = buffer.Data();
         if (!BatchReadImpl<endian>(buffer, std::forward<ARGS>(args)...))
         {
-            buffer.UnConsume(buffer.Data() - ptr);
+            buffer.ReverConsume(buffer.Data() - ptr);
             return false;
         }
 
         return true;
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, typename Head, class... Tail>
-    bool GetBatchReadDataSizeImpl(DataBuffer& buffer, size_t& already_read_size, Head&& value, Tail&&... tail)  noexcept
+    template <DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, typename Head, class... Tail>
+    bool GetBatchReadDataSizeImpl(DataBuffer& buffer, size_t& already_read_size, Head&& value, Tail &&...tail) noexcept
     {
         if constexpr (sizeof...(tail))
         {
@@ -352,7 +360,6 @@ namespace mp
                 buffer.Consume(prefix_size);
 
                 return true;
-
             }
             else if constexpr (std::is_array<HeadType>::value)
             {
@@ -385,25 +392,25 @@ namespace mp
         }
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... ARGS>
-    size_t GetBatchReadDataSize(DataBuffer& buffer, ARGS&&... args)  noexcept
+    template <DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... ARGS>
+    size_t GetBatchReadDataSize(DataBuffer& buffer, ARGS &&...args) noexcept
     {
         auto ptr = buffer.Data();
         size_t size = 0;
         if (!GetBatchReadDataSizeImpl(buffer, size, std::forward<ARGS>(args)...))
         {
             assert(buffer.Data() - ptr == size);
-            buffer.UnConsume(size);
+            buffer.ReverConsume(size);
             return 0;
         }
 
         assert(buffer.Data() - ptr == size);
-        buffer.UnConsume(size);
+        buffer.ReverConsume(size);
 
         return size;
     }
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... Types>
+    template <DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... Types>
     struct BatchReadDataSize
     {
         bool operator()(DataBuffer& buffer, size_t& already_read_size) const
@@ -412,7 +419,7 @@ namespace mp
         }
     };
 
-    template<DataBuffer::ByteOrder endian, class Type>
+    template <DataBuffer::ByteOrder endian, class Type> 
     struct BatchReadDataSize<endian, Type>
     {
         bool operator()(DataBuffer& buffer, size_t& already_read_size) const
@@ -504,36 +511,35 @@ namespace mp
         }
     };
 
-    template<DataBuffer::ByteOrder endian, class Head, class... Tail>
+    template <DataBuffer::ByteOrder endian, class Head, class... Tail>
     struct BatchReadDataSize<endian, Head, Tail...>
     {
         bool operator()(DataBuffer& buffer, size_t& already_read_size) const
         {
-            return BatchReadDataSize<endian, Head>{}(buffer, already_read_size) && BatchReadDataSize<endian, Tail...>{}(buffer, already_read_size);
+            return BatchReadDataSize<endian, Head>{}(buffer, already_read_size) &&
+                BatchReadDataSize<endian, Tail...>{}(buffer, already_read_size);
         }
     };
 
-    template<DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... Types>
-    size_t GetBatchReadDataSize(DataBuffer& buffer)  noexcept
+    template <DataBuffer::ByteOrder endian = DataBuffer::ByteOrder::kRuntime, class... Types>
+    size_t GetBatchReadDataSize(DataBuffer& buffer) noexcept
     {
         auto ptr = buffer.Data();
         size_t size = 0;
         if (!BatchReadDataSize<endian, Types...>{}(buffer, size))
         {
             assert(buffer.Data() - ptr == size);
-            buffer.UnConsume(size);
+            buffer.ReverConsume(size);
             return 0;
         }
 
         assert(buffer.Data() - ptr == size);
-        buffer.UnConsume(size);
+        buffer.ReverConsume(size);
 
         return size;
     }
 
-}
-
-
+} // namespace mp
 
 inline void DataBufferTest()
 {
@@ -544,7 +550,7 @@ inline void DataBufferTest()
     std::array<char, 10> array1;
 
     array1.fill('x');
-    char array2[2] = { 'A','B' };
+    char array2[2] = { 'A', 'B' };
     std::string str = "hello";
 
     auto size = mp::GetBatchWriteDataSize(i32, i16, i8, array1, array2, str);
@@ -554,37 +560,33 @@ inline void DataBufferTest()
     int16_t ii16 = 0;
     int8_t ii8 = 0;
     std::array<char, 10> array11;
-    char array22[2] = {  };
+    char array22[2] = {};
     std::string str2;
 
     auto n = mp::GetBatchReadDataSize(buf, ii32, ii16, ii8, array11, array22, str2);
     assert(n == size);
 
-    auto n2 = mp::GetBatchReadDataSize<mp::DataBuffer::ByteOrder::kNative, decltype(ii32), decltype(ii16), decltype(ii8), decltype(array11), decltype(array22), decltype(str2)>(buf);
+    auto n2 = mp::GetBatchReadDataSize<mp::DataBuffer::ByteOrder::kNative, decltype(ii32), decltype(ii16),
+        decltype(ii8), decltype(array11), decltype(array22), decltype(str2)>(buf);
     assert(n2 == n);
 
     auto ptr = buf.Data();
     mp::BatchRead(buf, ii32, ii16, ii8, array11, array22, str2);
     assert(buf.Data() - ptr == n);
 
-    mp::tmp::TupleForeachReverse([](auto& v)
-        {
-            std::cout << v << "\n";
-        }, std::make_tuple(ii32, ii16, ii8, str2));
+    mp::tmp::TupleForeachReverse([](auto& v) { std::cout << v << "\n"; }, std::make_tuple(ii32, ii16, ii8, str2));
 
-    mp::tmp::TupleForeach([](auto& v)
-        {
-            std::cout << v << "\n";
-        }, std::make_tuple(ii32, ii16, ii8, str2));
+    mp::tmp::TupleForeach([](auto& v) { std::cout << v << "\n"; }, std::make_tuple(ii32, ii16, ii8, str2));
 
     int i = 0;
-    mp::tmp::TupleForeachReverseWithReturnBool([&i](auto& v)
-        {
+    mp::tmp::TupleForeachReverseWithReturnBool(
+        [&i](auto& v) {
             if (i++ > 0)
             {
                 return false;
             }
             std::cout << v << "\n";
             return true;
-        }, std::make_tuple(ii32, ii16, ii8, str2));
+        },
+        std::make_tuple(ii32, ii16, ii8, str2));
 }

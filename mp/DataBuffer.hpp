@@ -1,26 +1,26 @@
 #pragma once
+#include <assert.h>
 #include <cstdint>
 #include <string.h>
-#include <assert.h>
-//#include <stdexcept>
+// #include <stdexcept>
+#include "EndianConversion.hpp"
 #include <algorithm>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
-#include <optional>
-#include "EndianConversion.hpp"
 
 namespace mp
 {
-    class  DataBuffer
+    class DataBuffer
     {
     public:
-        enum class  ByteOrder :uint8_t
+        enum class ByteOrder : uint8_t
         {
-            kNative = 0,             //本机的字节序
-            kLittleEndian = 1,       //小端序
-            kBigEndian = 2,          //网络字节序
-            kRuntime = 3             //运行时设置的字节序
+            kNative = 0,       // 本机的字节序
+            kLittleEndian = 1, // 小端序
+            kBigEndian = 2,    // 网络字节序
+            kRuntime = 3       // 运行时设置的字节序
         };
 
         static const size_t kCheapPrependSize = 8;
@@ -35,7 +35,7 @@ namespace mp
             buffer_ = new char[capacity_];
             assert(Size() == 0);
             assert(WritableBytes() == initial_size);
-            assert(FrontWriteableBytes() == reserved_prepend_size);
+            assert(PrependableBytes() == reserved_prepend_size);
         }
 
         DataBuffer(const DataBuffer&) = delete;
@@ -54,7 +54,6 @@ namespace mp
             other.capacity_ = 0;
             other.read_index_ = other.write_index_ = other.reserved_prepend_size_;
             other.endian_ = ByteOrder::kNative;
-
         }
 
         DataBuffer& operator=(DataBuffer&& other) noexcept
@@ -92,8 +91,8 @@ namespace mp
             std::swap(endian_, rhs.endian_);
         }
 
-        //read ptr
-        char* Data()  noexcept
+        // read ptr
+        char* Data() noexcept
         {
             return buffer_ + read_index_;
         }
@@ -103,14 +102,14 @@ namespace mp
             return buffer_ + read_index_;
         }
 
-        //readabe size
+        // readabe size
         size_t Size() const noexcept
         {
             assert(write_index_ >= read_index_);
             return write_index_ - read_index_;
         }
 
-        //write ptr
+        // write ptr
         char* WritePtr() noexcept
         {
             return Begin() + write_index_;
@@ -127,7 +126,7 @@ namespace mp
             return capacity_ - write_index_;
         }
 
-        size_t FrontWriteableBytes() const noexcept
+        size_t PrependableBytes() const noexcept
         {
             return read_index_;
         }
@@ -192,7 +191,7 @@ namespace mp
             }
         }
 
-        void Rever(size_t n)  noexcept
+        void ReverCommit(size_t n) noexcept
         {
             assert(n <= Size());
             if (write_index_ >= n)
@@ -213,7 +212,7 @@ namespace mp
             }
         }
 
-        void UnConsume(std::size_t n) noexcept
+        void ReverConsume(std::size_t n) noexcept
         {
             if (read_index_ >= n)
             {
@@ -231,7 +230,7 @@ namespace mp
             return std::string_view(WritePtr(), n);
         }
 
-        void Adjustment()  noexcept
+        void Adjustment() noexcept
         {
             if (read_index_ > reserved_prepend_size_)
             {
@@ -242,14 +241,13 @@ namespace mp
             }
         }
 
-        void SetEndian(ByteOrder byte_order)  noexcept
+        void SetEndian(ByteOrder byte_order) noexcept
         {
             endian_ = byte_order;
         }
 
-        // Write
     public:
-
+        // Write
         void Write(const void* buf, size_t len)
         {
             EnsureWritableBytes(len);
@@ -266,19 +264,20 @@ namespace mp
             write_index_ += sv.size();
         }
 
-        template<size_t N>
+        template <size_t N>
         void Write(const std::array<char, N>& array)
         {
             Write(array.data(), N);
         }
 
-        template<size_t N>
+        template <size_t N>
         void Write(const char(&array)[N])
         {
             Write(array, N);
         }
 
-        template<ByteOrder endian = ByteOrder::kRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template <ByteOrder endian = ByteOrder::kRuntime, typename T,
+            typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
         void Write(T value)
         {
             if constexpr (endian == ByteOrder::kNative)
@@ -314,14 +313,14 @@ namespace mp
             }
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
         void WriteInteger(T value)
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
             Write(&value, sizeof(value));
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
         void WriteIntegerLE(T value)
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
@@ -329,18 +328,48 @@ namespace mp
             Write(&value, sizeof(value));
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
         void WriteIntegerBE(T value)
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
             value = endian::htobe(value);
             Write(&value, sizeof(value));
         }
-
-        // Insert content, specified by the parameter, into the front of reading index
-        bool WriteFront(const void* buf, size_t len)  noexcept
+        // Append
+        void Append(const char* /*restrict*/ d, size_t len)
         {
-            if (FrontWriteableBytes() < len)
+            Write(d, len);
+        }
+
+        void Append(const void* /*restrict*/ d, size_t len)
+        {
+            Write(d, len);
+        }
+
+        void AppendInt64(int64_t x)
+        {
+            Write<ByteOrder::kRuntime>(x);
+        }
+
+        void AppendInt32(int32_t x)
+        {
+            Write<ByteOrder::kRuntime>(x);
+        }
+
+        void AppendInt16(int16_t x)
+        {
+            Write<ByteOrder::kRuntime>(x);
+        }
+
+        void AppendInt8(int8_t x)
+        {
+            Write(&x, sizeof x);
+        }
+
+        // WriteFront
+        bool WriteFront(const void* buf, size_t len) noexcept
+        {
+            if (PrependableBytes() < len)
             {
                 return false;
             }
@@ -351,10 +380,9 @@ namespace mp
             return true;
         }
 
-        // Insert content, specified by the parameter, into the front of reading index
-        bool WriteFront(std::string_view sv)  noexcept
+        bool WriteFront(std::string_view sv) noexcept
         {
-            if (FrontWriteableBytes() < sv.size())
+            if (PrependableBytes() < sv.size())
             {
                 return false;
             }
@@ -365,20 +393,21 @@ namespace mp
 
             return true;
         }
-        template<size_t N>
-        bool WriteFront(const std::array<char, N>& array)  noexcept
+        template <size_t N>
+        bool WriteFront(const std::array<char, N>& array) noexcept
         {
             return WriteFront(array.data(), N);
         }
 
-        template<size_t N>
-        bool WriteFront(const char(&array)[N])    noexcept
+        template <size_t N>
+        bool WriteFront(const char(&array)[N]) noexcept
         {
             return WriteFront(array, N);
         }
 
-        template<ByteOrder endian = ByteOrder::kRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
-        bool WriteFront(T value)   noexcept
+        template <ByteOrder endian = ByteOrder::kRuntime, typename T,
+            typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+        bool WriteFront(T value) noexcept
         {
             if constexpr (endian == ByteOrder::kNative)
             {
@@ -418,10 +447,30 @@ namespace mp
             return false;
         }
 
-        //Peek
-    public:
+        // PrependInt
+        void PrependInt64(int64_t x)
+        {
+            WriteFront<ByteOrder::kRuntime>(x);
+        }
 
-        bool Peek(void* buf, size_t len)  noexcept
+        void PrependInt32(int32_t x)
+        {
+            WriteFront<ByteOrder::kRuntime>(x);
+        }
+
+        void PrependInt16(int16_t x)
+        {
+            WriteFront<ByteOrder::kRuntime>(x);
+        }
+
+        void PrependInt8(int8_t x)
+        {
+            WriteFront(&x, sizeof x);
+        }
+
+    public:
+        // Peek
+        bool Peek(void* buf, size_t len) noexcept
         {
             if (Size() < len)
             {
@@ -433,20 +482,20 @@ namespace mp
             return true;
         }
 
-        template<size_t N>
+        template <size_t N>
         bool Peek(std::array<char, N>& array) noexcept
         {
             return Peek(array.data(), N);
         }
 
-        template<size_t N>
-        bool Peek(char(&array)[N])  noexcept
+        template <size_t N>
+        bool Peek(char(&array)[N]) noexcept
         {
             return Peek(array, N);
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
-        bool PeekIntegerLE(T& value)  noexcept
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+        bool PeekIntegerLE(T& value) noexcept
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
 
@@ -459,7 +508,7 @@ namespace mp
             return false;
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
         std::optional<T> PeekIntegerLE() noexcept
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
@@ -469,8 +518,8 @@ namespace mp
             return {};
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
-        bool PeekIntegerBE(T& value)  noexcept
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+        bool PeekIntegerBE(T& value) noexcept
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
 
@@ -483,7 +532,7 @@ namespace mp
             return false;
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
         std::optional<T> PeekIntegerBE() noexcept
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
@@ -493,16 +542,16 @@ namespace mp
             return {};
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
-        bool PeekInteger(T& value)  noexcept
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+        bool PeekInteger(T& value) noexcept
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
 
             return Peek(&value, sizeof(T));
         }
 
-        template<typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
-        std::optional<T> PeekInteger()  noexcept
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+        std::optional<T> PeekInteger() noexcept
         {
             static_assert(std::is_integral<T>::value, "must be Integer .");
             T value = 0;
@@ -514,7 +563,8 @@ namespace mp
             return {};
         }
 
-        template<typename T, ByteOrder endian = ByteOrder::kRuntime, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
+        template <typename T, ByteOrder endian = ByteOrder::kRuntime,
+            typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
         std::optional<T> Peek() noexcept
         {
             if constexpr (endian == ByteOrder::kNative)
@@ -523,7 +573,7 @@ namespace mp
             }
             else if constexpr (endian == ByteOrder::kLittleEndian)
             {
-                return  PeekIntegerLE<T>();
+                return PeekIntegerLE<T>();
             }
             else if constexpr (endian == ByteOrder::kBigEndian)
             {
@@ -550,8 +600,9 @@ namespace mp
             }
         }
 
-        template<ByteOrder endian = ByteOrder::kRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0>
-        bool Peek(T& value)   noexcept
+        template <ByteOrder endian = ByteOrder::kRuntime, typename T,
+            typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+        bool Peek(T& value) noexcept
         {
             if constexpr (endian == ByteOrder::kNative)
             {
@@ -569,7 +620,7 @@ namespace mp
             {
                 if (endian_ == ByteOrder::kBigEndian)
                 {
-                    return  PeekIntegerBE(value);
+                    return PeekIntegerBE(value);
                 }
                 else if (endian_ == ByteOrder::kLittleEndian)
                 {
@@ -586,9 +637,34 @@ namespace mp
             }
         }
 
-        //Read
+        // PeekInt
+        std::optional<int64_t> PeekInt64() noexcept
+        {
+            // assert(Size() >= sizeof(int64_t));
+            return Peek<int64_t>();
+        }
+
+        std::optional<int32_t> PeekInt32() noexcept
+        {
+            // assert(Size() >= sizeof(int32_t));
+            return Peek<int32_t, ByteOrder::kRuntime>();
+        }
+
+        std::optional<int16_t> PeekInt16() noexcept
+        {
+            // assert(Size() >= sizeof(int16_t));
+            return Peek<int16_t, ByteOrder::kRuntime>();
+        }
+
+        std::optional<int8_t> PeekInt8() noexcept
+        {
+            assert(Size() >= sizeof(int8_t));
+            return Peek<int8_t, ByteOrder::kRuntime>();
+        }
+
     public:
-        bool Read(void* buf, size_t len)  noexcept
+        // Read
+        bool Read(void* buf, size_t len) noexcept
         {
             if (Peek(buf, len))
             {
@@ -599,24 +675,57 @@ namespace mp
             return false;
         }
 
-        template<size_t N>
+        template <size_t N>
         bool Read(std::array<char, N>& array) noexcept
         {
             return Read(array.data(), N);
         }
 
-        template<size_t N>
-        bool Read(char(&array)[N])  noexcept
+        template <size_t N>
+        bool Read(char(&array)[N]) noexcept
         {
             return Read(array, N);
         }
 
-        template<ByteOrder endian = ByteOrder::kRuntime, typename T, typename std::enable_if <std::is_integral<T>::value, int >::type = 0 >
-        bool Read(T& value)  noexcept
+        template <typename T>
+        bool ReadInteger(T& value) noexcept
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+            return Read(&value, sizeof(T));
+        }
+
+        template <typename T>
+        bool ReadIntegerLE(T& value) noexcept
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+            if (Read(&value, sizeof(value)))
+            {
+                value = endian::letoh(value);
+                return true;
+            }
+
+            return false;
+        }
+
+        template <typename T>
+        bool ReadIntegerBE(T& value) noexcept
+        {
+            static_assert(std::is_integral<T>::value, "must be Integer .");
+            if (Read(&value, sizeof(value)))
+            {
+                value = endian::betoh(value);
+                return true;
+            }
+            return false;
+        }
+
+        template <ByteOrder endian = ByteOrder::kRuntime, typename T,
+            typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+        bool Read(T& value) noexcept
         {
             if constexpr (endian == ByteOrder::kNative)
             {
-                return  ReadInteger(value);
+                return ReadInteger(value);
             }
             else if constexpr (endian == ByteOrder::kLittleEndian)
             {
@@ -630,7 +739,7 @@ namespace mp
             {
                 if (endian_ == ByteOrder::kBigEndian)
                 {
-                    return  ReadIntegerBE(value);
+                    return ReadIntegerBE(value);
                 }
                 else if (endian_ == ByteOrder::kLittleEndian)
                 {
@@ -647,54 +756,34 @@ namespace mp
             }
         }
 
-        template<typename T>
-        bool ReadInteger(T& value)  noexcept
-        {
-            static_assert(std::is_integral<T>::value, "must be Integer .");
-            return Read(&value, sizeof(T));
-        }
-
-        template<typename T>
-        bool ReadIntegerLE(T& value)  noexcept
-        {
-            static_assert(std::is_integral<T>::value, "must be Integer .");
-            if (Read(&value, sizeof(value)))
-            {
-                value = endian::letoh(value);
-                return true;
-            }
-
-            return false;
-
-        }
-
-        template<typename T>
-        bool ReadIntegerBE(T& value)  noexcept
-        {
-            static_assert(std::is_integral<T>::value, "must be Integer .");
-            if (Read(&value, sizeof(value)))
-            {
-                value = endian::betoh(value);
-                return true;
-            }
-            return false;
-        }
-
         // Helpers
     public:
+        // ToText appends char '\0' to buffer to convert the underlying data to a c-style string text.
+        // It will not change the length of buffer.
+        void ToText()
+        {
+            AppendInt8('\0');
+            ReverCommit(1);
+        }
+
+        template <class T, class = typename std::enable_if<std::is_constructible<T, void*, std::size_t>::value>::type>
+        operator T() const noexcept
+        {
+            return T{ Data(), Size() };
+        }
 
         std::string ToString() const
         {
             return std::string(Data(), Size());
         }
 
-        const char* FindCRLF() const  noexcept
+        const char* FindCRLF() const noexcept
         {
             const char* crlf = std::search(Data(), WritePtr(), kCRLF, kCRLF + 2);
             return crlf == WritePtr() ? nullptr : crlf;
         }
 
-        const char* FindCRLF(const char* start) const  noexcept
+        const char* FindCRLF(const char* start) const noexcept
         {
             assert(Data() <= start);
             assert(start <= WritePtr());
@@ -702,21 +791,21 @@ namespace mp
             return crlf == WritePtr() ? nullptr : crlf;
         }
 
-        const char* FindEOL() const  noexcept
+        const char* FindEOL() const noexcept
         {
             const void* eol = memchr(Data(), '\n', Size());
             return static_cast<const char*>(eol);
         }
 
-        const char* FindEOL(const char* start) const  noexcept
+        const char* FindEOL(const char* start) const noexcept
         {
             assert(Data() <= start);
             assert(start <= WritePtr());
             const void* eol = memchr(start, '\n', WritePtr() - start);
             return static_cast<const char*>(eol);
         }
-    private:
 
+    private:
         char* Begin() noexcept
         {
             return buffer_;
@@ -740,9 +829,9 @@ namespace mp
 
         void Grow(size_t len)
         {
-            if (WritableBytes() + FrontWriteableBytes() < len + reserved_prepend_size_)
+            if (WritableBytes() + PrependableBytes() < len + reserved_prepend_size_)
             {
-                //grow the capacity
+                // grow the capacity
                 size_t n = (capacity_ << 1) + len;
                 size_t data_size = Size();
                 char* d = new char[n];
@@ -776,4 +865,4 @@ namespace mp
         static constexpr char kCRLF[] = "\r\n";
     };
 
-}
+} // namespace mp
